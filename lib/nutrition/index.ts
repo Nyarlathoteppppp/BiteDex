@@ -24,6 +24,8 @@ const sugarTags = new Set<FoodTag>([
 
 const fatTags = new Set<FoodTag>(["high_fat", "fried", "creamy"]);
 
+const proteinTags = new Set<FoodTag>(["high_protein"]);
+
 const rarityRank: Record<Rarity, number> = {
   N: 0,
   R: 1,
@@ -32,12 +34,14 @@ const rarityRank: Record<Rarity, number> = {
 };
 
 const petImageByStatus: Record<PetStatus, string> = {
-  normal: "/pets/normal.png",
-  energized: "/pets/energized.png",
-  chubby: "/pets/chubby.png",
-  tired: "/pets/tired.png",
-  sugar_rush: "/pets/sugar-rush.png",
-  overloaded: "/pets/overloaded.png",
+  normal: "/pets/Normal.png",
+  energized: "/pets/Energized.png",
+  chubby: "/pets/Chubby.png",
+  tired: "/pets/Tired.png",
+  sugar_rush: "/pets/Sugar%20Rush.png",
+  overloaded: "/pets/Overloaded.png",
+  protein_power: "/pets/Protein%20Power.png",
+  diet_mode: "/pets/Diet%20Mode.png",
 };
 
 const petTitleByStatus: Record<PetStatus, string> = {
@@ -47,6 +51,8 @@ const petTitleByStatus: Record<PetStatus, string> = {
   tired: "Tired",
   sugar_rush: "Sugar Rush",
   overloaded: "Energy Overload",
+  protein_power: "Protein Power",
+  diet_mode: "Diet Mode",
 };
 
 export function calculateDailyTotal(foods: FoodCard[]): DailyTotal {
@@ -95,6 +101,8 @@ export function computePetState(foods: FoodCard[]): PetState {
   const total = calculateDailyTotal(foods);
   const highSugarCount = foods.filter(isHighSugarFood).length;
   const highFatCount = foods.filter(isHighFatFood).length;
+  const highProteinCount = foods.filter(isHighProteinFood).length;
+  const lightBalancedCount = foods.filter(isLightBalancedFood).length;
 
   let status: PetStatus = "normal";
 
@@ -102,10 +110,14 @@ export function computePetState(foods: FoodCard[]): PetState {
     status = "overloaded";
   } else if (highSugarCount >= 2) {
     status = "sugar_rush";
-  } else if (total.records >= 2 && total.kcalMax < 1000) {
-    status = "tired";
   } else if (total.kcalMin > 2200 || highFatCount >= 2) {
     status = "chubby";
+  } else if (total.protein >= 90 || highProteinCount >= 2) {
+    status = "protein_power";
+  } else if (total.records >= 2 && total.kcalMax < 1000 && lightBalancedCount >= 1) {
+    status = "diet_mode";
+  } else if (total.records >= 2 && total.kcalMax < 1000) {
+    status = "tired";
   } else if (total.kcalMin >= 1200 && total.kcalMin <= 2200 && total.protein >= 60) {
     status = "energized";
   }
@@ -127,63 +139,83 @@ export function generatePetDialogue(
 
   if (foods.length === 0) {
     return {
-      title: "Ready to Eat",
-      message: "I am waiting for today's first food card.",
-      reason: "No meals have been recorded yet.",
-      suggestion: "Upload a meal photo to start today's BiteDex.",
+      title: "Pet Review",
+      message: "My lunchbox is still empty.",
+      reason: "No food cards have been fed to me yet.",
+      suggestion: "Upload a food photo and I will taste it with my eyes.",
     };
   }
 
+  const latestFood = foods[foods.length - 1];
+
   if (petState.status === "overloaded") {
     return {
-      title: "Energy Overload",
-      message: "I feel energy-overloaded today.",
-      reason: `Your recorded foods already reached ${total.kcalMin}-${total.kcalMax} kcal.`,
-      suggestion: "Try a lighter pattern tomorrow with fewer fried, creamy, or oversized meals.",
+      title: "Pet Review",
+      message: `I tried ${latestFood.foodName} and my belly is beeping.`,
+      reason: `Today's food cards reached ${total.kcalMin}-${total.kcalMax} kcal.`,
+      suggestion: "Tomorrow, feed me something lighter so I can roll less and wiggle more.",
     };
   }
 
   if (petState.status === "sugar_rush") {
     return {
-      title: "Sugar Rush",
-      message: "I entered sugar-rush mode.",
+      title: "Pet Review",
+      message: `That ${latestFood.foodName} made my sparkle meter jump.`,
       reason: `Sweet foods or sugary drinks appeared ${highSugarCount} times today.`,
-      suggestion: "Choose unsweetened drinks next time and add protein or vegetables.",
+      suggestion: "A little protein or water next time will help me stop zooming around.",
     };
   }
 
   if (petState.status === "tired") {
     return {
-      title: "Low Energy",
-      message: "My energy is running low.",
-      reason: "You recorded multiple foods, but the total calorie range is still low.",
-      suggestion: "Add a balanced meal with protein, grains, and vegetables.",
+      title: "Pet Review",
+      message: `I tasted ${latestFood.foodName}, but I still feel sleepy.`,
+      reason: "There are multiple food cards, but the total energy is still low.",
+      suggestion: "Feed me a balanced meal with protein, grains, and vegetables.",
     };
   }
 
   if (petState.status === "chubby") {
     return {
-      title: "Chubby Mode",
-      message: "I am getting rounder today.",
+      title: "Pet Review",
+      message: `${latestFood.foodName} was tasty. I am becoming a soft little round bean.`,
       reason: `Calories or high-fat foods are trending up. High-fat cards: ${highFatCount}.`,
-      suggestion: "Balance the next meal with lean protein, vegetables, and less fried food.",
+      suggestion: "Next feeding can be lean protein and vegetables to keep me bouncy.",
+    };
+  }
+
+  if (petState.status === "protein_power") {
+    return {
+      title: "Pet Review",
+      message: `${latestFood.foodName} gave me tiny hero muscles.`,
+      reason: `Today's protein reached ${total.protein}g.`,
+      suggestion: "This is a strong pattern. Keep it balanced with carbs and vegetables.",
+    };
+  }
+
+  if (petState.status === "diet_mode") {
+    return {
+      title: "Pet Review",
+      message: `${latestFood.foodName} feels light. I can hop around easily.`,
+      reason: "Today's cards look lighter and relatively balanced.",
+      suggestion: "Nice light mode. Just make sure I still get enough energy later.",
     };
   }
 
   if (petState.status === "energized") {
     return {
-      title: "Energized",
-      message: "I feel strong and steady.",
+      title: "Pet Review",
+      message: `${latestFood.foodName} made me bright-eyed and ready to play.`,
       reason: `Today's protein reached ${total.protein}g within a moderate calorie range.`,
-      suggestion: "Keep this balanced pattern and avoid adding too many sweet drinks.",
+      suggestion: "Balanced feeding detected. I approve with happy paws.",
     };
   }
 
   return {
-    title: "Normal",
-    message: "I am stable today.",
+    title: "Pet Review",
+    message: `I nibbled ${latestFood.foodName}. My tummy feels steady.`,
     reason: "Your recorded food pattern has not triggered a special state yet.",
-    suggestion: "Keep recording meals so I can show a clearer pattern.",
+    suggestion: "Keep feeding me food cards and I will show my mood more clearly.",
   };
 }
 
@@ -299,6 +331,17 @@ function isHighFatFood(food: FoodCard): boolean {
   return food.fat >= 25 || food.tags.some((tag) => fatTags.has(tag));
 }
 
+function isHighProteinFood(food: FoodCard): boolean {
+  return food.protein >= 30 || food.tags.some((tag) => proteinTags.has(tag));
+}
+
+function isLightBalancedFood(food: FoodCard): boolean {
+  return (
+    food.kcalMax <= 450 &&
+    food.tags.some((tag) => tag === "balanced" || tag === "low_calorie")
+  );
+}
+
 function upgradeRarity(rarity: Rarity): Rarity {
   if (rarity === "N") return "R";
   if (rarity === "R") return "SR";
@@ -346,6 +389,8 @@ function computePetStatusDistribution(logs: DailyLog[]): PetStatusDistribution {
     tired: 0,
     sugar_rush: 0,
     overloaded: 0,
+    protein_power: 0,
+    diet_mode: 0,
   };
 
   return logs.reduce<PetStatusDistribution>((distribution, log) => {

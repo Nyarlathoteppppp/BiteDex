@@ -36,7 +36,9 @@ export type PetStatus =
   | "chubby"
   | "tired"
   | "sugar_rush"
-  | "overloaded";
+  | "overloaded"
+  | "protein_power"
+  | "diet_mode";
 
 export type RecognizedFood = {
   foodName: string;
@@ -139,4 +141,3 @@ export type SevenDayAnalysis = {
   summary: string;
   advice: string;
 };
-

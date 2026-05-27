@@ -6,6 +6,7 @@ import {
   Camera,
   ChartNoAxesCombined,
   LibraryBig,
+  MessageCircle,
   Trash2,
 } from "lucide-react";
 import type { DailyLog } from "@/types";
@@ -29,6 +30,7 @@ export default function Home() {
   }
 
   const { total, petState, dialogue, highlights, foods } = todayLog;
+  const latestFood = foods[foods.length - 1];
 
   function handleDelete(foodId: string) {
     if (!todayLog) {
@@ -65,6 +67,13 @@ export default function Home() {
               Dex
             </Link>
             <Link
+              href="/pet"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#e4d3be] bg-white px-4 py-2 text-sm font-semibold"
+            >
+              <MessageCircle size={18} />
+              Pet
+            </Link>
+            <Link
               href="/analysis"
               className="inline-flex items-center gap-2 rounded-lg border border-[#e4d3be] bg-white px-4 py-2 text-sm font-semibold"
             >
@@ -75,23 +84,28 @@ export default function Home() {
         </header>
 
         <section className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-lg border border-[#eadbc7] bg-white p-5 shadow-sm">
-            <div className="grid gap-5 sm:grid-cols-[220px_1fr] sm:items-center">
-              <div className="flex aspect-square items-center justify-center rounded-lg bg-[#d9f3ea]">
-                <div className="flex h-32 w-32 items-center justify-center rounded-full bg-[#0f766e] text-center text-sm font-bold text-white">
+          <div className="overflow-hidden rounded-lg border border-[#eadbc7] bg-white shadow-sm">
+            <div className="grid gap-0 sm:grid-cols-[250px_1fr]">
+              <div className="flex min-h-[270px] flex-col items-center justify-center bg-[#d9f3ea] p-5">
+                <PetImage src={petState.imageUrl} title={petState.title} />
+                <p className="mt-3 rounded-lg bg-white px-3 py-2 text-sm font-bold text-[#0f766e] shadow-sm">
                   {petState.title}
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-wider text-[#0f766e]">
-                  Pet Status
                 </p>
-                <h2 className="mt-2 text-3xl font-bold">{dialogue.title}</h2>
-                <p className="mt-3 text-lg font-semibold text-[#3b3430]">
+              </div>
+              <div className="p-5">
+                <p className="text-sm font-semibold uppercase tracking-wider text-[#0f766e]">
+                  Feeding Pet
+                </p>
+                <h2 className="mt-2 text-3xl font-bold">
+                  {latestFood ? `Fed: ${latestFood.foodName}` : "Waiting for food"}
+                </h2>
+                <p className="mt-3 text-lg font-semibold leading-8 text-[#3b3430]">
                   {dialogue.message}
                 </p>
-                <p className="mt-2 leading-7 text-[#665f56]">{dialogue.reason}</p>
-                <p className="mt-2 leading-7 text-[#665f56]">
+                <p className="mt-3 rounded-lg bg-[#f8efe3] p-4 leading-7 text-[#665f56]">
+                  {dialogue.reason}
+                </p>
+                <p className="mt-3 leading-7 text-[#665f56]">
                   {dialogue.suggestion}
                 </p>
               </div>
@@ -162,11 +176,12 @@ export default function Home() {
                 foods.map((food) => (
                   <div
                     key={food.id}
-                    className="grid grid-cols-[56px_1fr_auto_auto] items-center gap-3 py-3"
+                    className="grid grid-cols-[50px_58px_1fr_auto_auto] items-center gap-3 py-3"
                   >
                     <div className="text-sm font-semibold text-[#85786c]">
                       {food.time}
                     </div>
+                    <FoodThumb src={food.imageUrl} name={food.foodName} />
                     <div>
                       <p className="font-semibold">{food.foodName}</p>
                       <p className="mt-1 text-sm text-[#766b60]">
@@ -211,6 +226,41 @@ function Metric({
         {value}
         {unit ? <span className="ml-1 text-sm font-semibold">{unit}</span> : null}
       </p>
+    </div>
+  );
+}
+
+function PetImage({ src, title }: { src: string; title: string }) {
+  return (
+    <div className="flex aspect-square w-full max-w-[210px] items-center justify-center rounded-lg bg-white/70 p-3 shadow-sm">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={`${title} pet`}
+        className="h-full w-full object-contain"
+        onError={(event) => {
+          event.currentTarget.style.display = "none";
+          event.currentTarget.nextElementSibling?.classList.remove("hidden");
+        }}
+      />
+      <div className="hidden text-center text-sm font-bold text-[#0f766e]">
+        {title}
+      </div>
+    </div>
+  );
+}
+
+function FoodThumb({ src, name }: { src: string; name: string }) {
+  if (!src) {
+    return (
+      <div className="h-12 w-12 rounded-lg bg-[#f8efe3]" aria-label={name} />
+    );
+  }
+
+  return (
+    <div className="h-12 w-12 overflow-hidden rounded-lg bg-[#f8efe3]">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt={name} className="h-full w-full object-cover" />
     </div>
   );
 }

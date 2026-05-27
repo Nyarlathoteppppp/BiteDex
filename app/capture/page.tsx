@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Camera, Check, FlaskConical, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  Check,
+  FlaskConical,
+  MessageCircle,
+  Sparkles,
+} from "lucide-react";
 import type { FoodCard, MealType, RecognizedFood } from "@/types";
 import { mealTypes } from "@/types";
 import { addFoodCard } from "@/lib/storage";
@@ -263,12 +270,21 @@ export default function CapturePage() {
                   {saved ? "Added" : "Add to Today"}
                 </button>
                 {saved ? (
-                  <Link
-                    href="/"
-                    className="inline-flex items-center justify-center rounded-lg border border-[#e4d3be] bg-white px-4 py-3 text-sm font-bold"
-                  >
-                    View Dashboard
-                  </Link>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Link
+                      href="/"
+                      className="inline-flex items-center justify-center rounded-lg border border-[#e4d3be] bg-white px-4 py-3 text-sm font-bold"
+                    >
+                      View Dashboard
+                    </Link>
+                    <Link
+                      href="/pet"
+                      className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#e4d3be] bg-white px-4 py-3 text-sm font-bold"
+                    >
+                      <MessageCircle size={18} />
+                      Pet Reply
+                    </Link>
+                  </div>
                 ) : null}
               </div>
             ) : (
