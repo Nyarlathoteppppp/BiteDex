@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Background -->
+  <circle cx="100" cy="100" r="95" fill="#e8f5e9" stroke="#a5d6a7" stroke-width="3"/>
+
+  <!-- Ears -->
+  <ellipse cx="55" cy="62" rx="22" ry="26" fill="#81c784"/>
+  <ellipse cx="55" cy="62" rx="13" ry="17" fill="#ffccbc"/>
+  <ellipse cx="145" cy="62" rx="22" ry="26" fill="#81c784"/>
+  <ellipse cx="145" cy="62" rx="13" ry="17" fill="#ffccbc"/>
+
+  <!-- Body / Head -->
+  <circle cx="100" cy="108" r="68" fill="#a5d6a7"/>
+
+  <!-- Cheek blush -->
+  <ellipse cx="72" cy="118" rx="14" ry="9" fill="#ef9a9a" opacity="0.55"/>
+  <ellipse cx="128" cy="118" rx="14" ry="9" fill="#ef9a9a" opacity="0.55"/>
+
+  <!-- Eyes -->
+  <circle cx="84" cy="100" r="11" fill="white"/>
+  <circle cx="116" cy="100" r="11" fill="white"/>
+  <circle cx="86" cy="101" r="6" fill="#3e2723"/>
+  <circle cx="118" cy="101" r="6" fill="#3e2723"/>
+  <!-- Eye shine -->
+  <circle cx="88" cy="98" r="2.5" fill="white"/>
+  <circle cx="120" cy="98" r="2.5" fill="white"/>
+
+  <!-- Nose -->
+  <ellipse cx="100" cy="116" rx="5" ry="4" fill="#e57373"/>
+
+  <!-- Happy smile -->
+  <path d="M88 127 Q100 140 112 127" stroke="#5d4037" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Whiskers left -->
+  <line x1="62" y1="114" x2="87" y2="118" stroke="#bdbdbd" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="60" y1="120" x2="86" y2="121" stroke="#bdbdbd" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Whiskers right -->
+  <line x1="138" y1="114" x2="113" y2="118" stroke="#bdbdbd" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="140" y1="120" x2="114" y2="121" stroke="#bdbdbd" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

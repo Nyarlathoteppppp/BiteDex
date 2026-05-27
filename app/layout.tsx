@@ -1,19 +1,23 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata } from "next"
+import "./globals.css"
+import { BottomNav } from "@/components/layout/BottomNav"
 
 export const metadata: Metadata = {
-  title: "BiteDex",
-  description: "A photo-based food card and pet feedback MVP.",
-};
+  title: "BiteDex 一口图鉴",
+  description: "拍食物，生成卡片，用宠物反馈你的饮食状态",
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="zh-CN">
+      <body className="pb-20">
+        {children}
+        <BottomNav />
+      </body>
     </html>
-  );
+  )
 }

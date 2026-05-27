@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Background -->
+  <circle cx="100" cy="100" r="95" fill="#fce4ec" stroke="#f48fb1" stroke-width="3"/>
+
+  <!-- Ears - small on big round head -->
+  <ellipse cx="56" cy="58" rx="19" ry="22" fill="#f48fb1"/>
+  <ellipse cx="56" cy="58" rx="11" ry="14" fill="#ffccbc"/>
+  <ellipse cx="144" cy="58" rx="19" ry="22" fill="#f48fb1"/>
+  <ellipse cx="144" cy="58" rx="11" ry="14" fill="#ffccbc"/>
+
+  <!-- Extra chubby body - larger and lower -->
+  <ellipse cx="100" cy="116" rx="74" ry="70" fill="#f8bbd0"/>
+
+  <!-- Chubby cheek pouches -->
+  <ellipse cx="62" cy="122" rx="22" ry="17" fill="#f48fb1" opacity="0.6"/>
+  <ellipse cx="138" cy="122" rx="22" ry="17" fill="#f48fb1" opacity="0.6"/>
+
+  <!-- Eyes - small on chubby face -->
+  <circle cx="84" cy="100" r="10" fill="white"/>
+  <circle cx="116" cy="100" r="10" fill="white"/>
+  <circle cx="86" cy="102" r="6" fill="#3e2723"/>
+  <circle cx="118" cy="102" r="6" fill="#3e2723"/>
+  <circle cx="88" cy="99" r="2" fill="white"/>
+  <circle cx="120" cy="99" r="2" fill="white"/>
+
+  <!-- Tiny nose -->
+  <ellipse cx="100" cy="116" rx="5" ry="4" fill="#e91e63"/>
+
+  <!-- Satisfied content smile -->
+  <path d="M90 127 Q100 136 110 127" stroke="#ad1457" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Little food crumbs -->
+  <circle cx="82" cy="135" r="2" fill="#ffb74d" opacity="0.8"/>
+  <circle cx="118" cy="133" r="1.5" fill="#a5d6a7" opacity="0.8"/>
+  <circle cx="110" cy="138" r="2" fill="#ffb74d" opacity="0.8"/>
+
+  <!-- Whiskers left -->
+  <line x1="58" y1="116" x2="83" y2="119" stroke="#ce93d8" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="56" y1="122" x2="82" y2="123" stroke="#ce93d8" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Whiskers right -->
+  <line x1="142" y1="116" x2="117" y2="119" stroke="#ce93d8" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="144" y1="122" x2="118" y2="123" stroke="#ce93d8" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

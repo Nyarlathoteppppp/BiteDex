@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Background - wild gradient look with stars -->
+  <circle cx="100" cy="100" r="95" fill="#fff3e0" stroke="#ff8a65" stroke-width="3"/>
+
+  <!-- Stars everywhere -->
+  <polygon points="22,38 24,30 26,38 34,40 26,42 24,50 22,42 14,40" fill="#ff5722" opacity="0.8"/>
+  <polygon points="168,22 170,16 172,22 178,24 172,26 170,32 168,26 162,24" fill="#ffd600" opacity="0.9"/>
+  <polygon points="28,155 30,149 32,155 38,157 32,159 30,165 28,159 22,157" fill="#e040fb" opacity="0.8"/>
+  <polygon points="162,158 164,152 166,158 172,160 166,162 164,168 162,162 156,160" fill="#00e5ff" opacity="0.8"/>
+  <polygon points="88,14 90,8 92,14 98,16 92,18 90,24 88,18 82,16" fill="#ff1744" opacity="0.7"/>
+
+  <!-- Motion lines -->
+  <line x1="15" y1="90" x2="28" y2="90" stroke="#ff8a65" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="13" y1="100" x2="26" y2="100" stroke="#ffd54f" stroke-width="2" stroke-linecap="round"/>
+  <line x1="15" y1="110" x2="28" y2="110" stroke="#ff8a65" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Ears - slightly tilted/wild -->
+  <ellipse cx="53" cy="58" rx="22" ry="26" fill="#ff7043" transform="rotate(-10 53 58)"/>
+  <ellipse cx="53" cy="58" rx="13" ry="17" fill="#ffccbc" transform="rotate(-10 53 58)"/>
+  <ellipse cx="147" cy="58" rx="22" ry="26" fill="#ff7043" transform="rotate(10 147 58)"/>
+  <ellipse cx="147" cy="58" rx="13" ry="17" fill="#ffccbc" transform="rotate(10 147 58)"/>
+
+  <!-- Body / Head -->
+  <circle cx="100" cy="108" r="68" fill="#ffab40"/>
+
+  <!-- Intense cheek blush -->
+  <ellipse cx="70" cy="116" rx="16" ry="10" fill="#ff3d00" opacity="0.5"/>
+  <ellipse cx="130" cy="116" rx="16" ry="10" fill="#ff3d00" opacity="0.5"/>
+
+  <!-- Spiral / crazy eyes -->
+  <circle cx="84" cy="98" r="13" fill="white"/>
+  <circle cx="116" cy="98" r="13" fill="white"/>
+  <!-- Spiral left eye -->
+  <circle cx="84" cy="98" r="8" fill="none" stroke="#ff5722" stroke-width="2"/>
+  <circle cx="84" cy="98" r="4" fill="none" stroke="#3e2723" stroke-width="2"/>
+  <circle cx="84" cy="98" r="1.5" fill="#3e2723"/>
+  <!-- Spiral right eye -->
+  <circle cx="116" cy="98" r="8" fill="none" stroke="#ff5722" stroke-width="2"/>
+  <circle cx="116" cy="98" r="4" fill="none" stroke="#3e2723" stroke-width="2"/>
+  <circle cx="116" cy="98" r="1.5" fill="#3e2723"/>
+  <!-- Eye shine -->
+  <circle cx="88" cy="93" r="2.5" fill="white"/>
+  <circle cx="120" cy="93" r="2.5" fill="white"/>
+
+  <!-- Nose -->
+  <ellipse cx="100" cy="114" rx="5" ry="4" fill="#bf360c"/>
+
+  <!-- Manic wide grin -->
+  <path d="M82 124 Q100 148 118 124" stroke="#bf360c" stroke-width="2.5" fill="#fff9c4" stroke-linecap="round"/>
+  <!-- Little tongue -->
+  <ellipse cx="100" cy="139" rx="6" ry="4" fill="#ef5350"/>
+
+  <!-- Whiskers - splayed wildly -->
+  <line x1="60" y1="110" x2="85" y2="116" stroke="#ff8a65" stroke-width="1.5" stroke-linecap="round" transform="rotate(-5 60 110)"/>
+  <line x1="58" y1="120" x2="84" y2="120" stroke="#ff8a65" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="140" y1="110" x2="115" y2="116" stroke="#ff8a65" stroke-width="1.5" stroke-linecap="round" transform="rotate(5 140 110)"/>
+  <line x1="142" y1="120" x2="116" y2="120" stroke="#ff8a65" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
