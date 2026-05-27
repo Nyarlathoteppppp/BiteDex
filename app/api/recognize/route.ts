@@ -1,21 +1,16 @@
 import { z } from "zod"
-
-const VALID_TAGS = [
-  "high_sugar", "high_fat", "high_carb", "high_protein", "sweet",
-  "dessert", "drink", "snack", "fried", "creamy", "fast_food",
-  "balanced", "low_calorie", "high_calorie",
-] as const
+import { foodTags } from "@/types"
 
 const foodSchema = z.object({
   foodName: z.string(),
   portion: z.string(),
-  estimatedMealType: z.enum(["breakfast", "lunch", "dinner", "snack"]),
+  estimatedMealType: z.enum(["breakfast", "lunch", "dinner", "snack", "drink", "other"]),
   kcalMin: z.number().min(0).max(5000),
   kcalMax: z.number().min(0).max(5000),
   protein: z.number().min(0),
   carbs: z.number().min(0),
   fat: z.number().min(0),
-  tags: z.array(z.enum(VALID_TAGS)),
+  tags: z.array(z.enum(foodTags)),
   confidence: z.number().min(0).max(1),
   biteScore: z.number().min(0).max(100),
   advice: z.string(),
@@ -46,13 +41,13 @@ export async function POST(request: Request) {
     const prompt = `You are a food recognition AI. Analyze this food photo and return a JSON object with these exact fields:
 - foodName: string (name of the food)
 - portion: string (estimated portion size)
-- estimatedMealType: one of "breakfast", "lunch", "dinner", "snack" (hint: user said "${mealType}")
+- estimatedMealType: one of "breakfast", "lunch", "dinner", "snack", "drink", "other" (hint: user said "${mealType}")
 - kcalMin: number (minimum estimated calories)
 - kcalMax: number (maximum estimated calories)
 - protein: number (grams of protein)
 - carbs: number (grams of carbohydrates)
 - fat: number (grams of fat)
-- tags: array of strings from ONLY these options: high_sugar, high_fat, high_carb, high_protein, sweet, dessert, drink, snack, fried, creamy, fast_food, balanced, low_calorie, high_calorie
+- tags: array of strings from ONLY these options: ${foodTags.join(", ")}
 - confidence: number between 0 and 1
 - biteScore: number 0-100 (health score, higher = healthier)
 - advice: string (one sentence dietary advice)

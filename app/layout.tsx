@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import "./globals.css"
-import { BottomNav } from "@/components/layout/BottomNav"
 
 export const metadata: Metadata = {
   title: "BiteDex 一口图鉴",
@@ -14,10 +13,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body className="pb-20">
-        {children}
-        <BottomNav />
-      </body>
+      <body>{children}</body>
     </html>
   )
 }
