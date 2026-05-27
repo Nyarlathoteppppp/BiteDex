@@ -1,12 +1,42 @@
-import Link from "next/link";
-import { Camera, ChartNoAxesCombined, LibraryBig } from "lucide-react";
-import { buildDailyLog } from "@/lib/nutrition";
-import { sampleTodayFoods } from "@/lib/mock/cards";
+"use client";
 
-const todayLog = buildDailyLog("2026-05-28", sampleTodayFoods);
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import {
+  Camera,
+  ChartNoAxesCombined,
+  LibraryBig,
+  Trash2,
+} from "lucide-react";
+import type { DailyLog } from "@/types";
+import { deleteFoodCard, getTodayLog } from "@/lib/storage";
 
 export default function Home() {
+  const [todayLog, setTodayLog] = useState<DailyLog | null>(null);
+
+  useEffect(() => {
+    setTodayLog(getTodayLog());
+  }, []);
+
+  if (!todayLog) {
+    return (
+      <main className="min-h-screen bg-[#fffaf3] px-5 py-6 text-[#231f20]">
+        <div className="mx-auto max-w-6xl rounded-lg border border-[#eadbc7] bg-white p-5 shadow-sm">
+          Loading BiteDex...
+        </div>
+      </main>
+    );
+  }
+
   const { total, petState, dialogue, highlights, foods } = todayLog;
+
+  function handleDelete(foodId: string) {
+    if (!todayLog) {
+      return;
+    }
+
+    setTodayLog(deleteFoodCard(foodId, todayLog.date));
+  }
 
   return (
     <main className="min-h-screen bg-[#fffaf3] text-[#231f20]">
@@ -74,7 +104,11 @@ export default function Home() {
             </p>
             <div className="mt-5 grid grid-cols-2 gap-3">
               <Metric label="Records" value={String(total.records)} />
-              <Metric label="Calories" value={`${total.kcalMin}-${total.kcalMax}`} unit="kcal" />
+              <Metric
+                label="Calories"
+                value={`${total.kcalMin}-${total.kcalMax}`}
+                unit="kcal"
+              />
               <Metric label="Protein" value={String(total.protein)} unit="g" />
               <Metric label="Carbs" value={String(total.carbs)} unit="g" />
               <Metric label="Fat" value={String(total.fat)} unit="g" />
@@ -120,23 +154,39 @@ export default function Home() {
           <div className="rounded-lg border border-[#eadbc7] bg-white p-5 shadow-sm">
             <h2 className="text-xl font-bold">Today Timeline</h2>
             <div className="mt-4 divide-y divide-[#f0e3d2]">
-              {foods.map((food) => (
-                <div
-                  key={food.id}
-                  className="grid grid-cols-[56px_1fr_auto] items-center gap-3 py-3"
-                >
-                  <div className="text-sm font-semibold text-[#85786c]">{food.time}</div>
-                  <div>
-                    <p className="font-semibold">{food.foodName}</p>
-                    <p className="mt-1 text-sm text-[#766b60]">
-                      {food.portion} · {food.mealType} · {food.rarity}
-                    </p>
-                  </div>
-                  <div className="text-right text-sm font-semibold">
-                    {food.kcalMin}-{food.kcalMax} kcal
-                  </div>
+              {foods.length === 0 ? (
+                <div className="rounded-lg bg-[#f8efe3] p-5 text-[#766b60]">
+                  No food cards yet. Upload a photo to start today&apos;s log.
                 </div>
-              ))}
+              ) : (
+                foods.map((food) => (
+                  <div
+                    key={food.id}
+                    className="grid grid-cols-[56px_1fr_auto_auto] items-center gap-3 py-3"
+                  >
+                    <div className="text-sm font-semibold text-[#85786c]">
+                      {food.time}
+                    </div>
+                    <div>
+                      <p className="font-semibold">{food.foodName}</p>
+                      <p className="mt-1 text-sm text-[#766b60]">
+                        {food.portion} · {food.mealType} · {food.rarity}
+                      </p>
+                    </div>
+                    <div className="text-right text-sm font-semibold">
+                      {food.kcalMin}-{food.kcalMax} kcal
+                    </div>
+                    <button
+                      type="button"
+                      aria-label={`Delete ${food.foodName}`}
+                      onClick={() => handleDelete(food.id)}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#e4d3be] bg-white text-[#766b60]"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </section>

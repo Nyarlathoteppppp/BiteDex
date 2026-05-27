@@ -7,6 +7,7 @@ import type {
   FoodCard,
 } from "@/types";
 import { buildDailyLog, mergeDexItem } from "@/lib/nutrition";
+import { getLocalDateKey } from "@/lib/utils/dates";
 
 export const dailyLogsKey = "bitedex.dailyLogs.v1";
 export const dexKey = "bitedex.dex.v1";
@@ -20,7 +21,7 @@ export function getDex(): DexByFoodName {
 }
 
 export function getTodayLog(today = new Date()): DailyLog {
-  const date = toDateKey(today);
+  const date = getLocalDateKey(today);
   const logs = getDailyLogs();
 
   return logs[date] ?? buildDailyLog(date, []);
@@ -93,9 +94,5 @@ function readJson<T>(key: string, fallback: T): T {
 
 function writeJson<T>(key: string, value: T): void {
   window.localStorage.setItem(key, JSON.stringify(value));
-}
-
-function toDateKey(date: Date): string {
-  return date.toISOString().slice(0, 10);
 }
 

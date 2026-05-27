@@ -13,6 +13,7 @@ import type {
   Rarity,
   SevenDayAnalysis,
 } from "@/types";
+import { getLocalDateKey } from "@/lib/utils/dates";
 
 const sugarTags = new Set<FoodTag>([
   "high_sugar",
@@ -333,12 +334,8 @@ function getRecentDateKeys(today: Date, days: number): string[] {
   return Array.from({ length: days }, (_, index) => {
     const date = new Date(today);
     date.setDate(today.getDate() - index);
-    return toDateKey(date);
+    return getLocalDateKey(date);
   });
-}
-
-function toDateKey(date: Date): string {
-  return date.toISOString().slice(0, 10);
 }
 
 function computePetStatusDistribution(logs: DailyLog[]): PetStatusDistribution {
@@ -401,4 +398,3 @@ function buildWeeklyAdvice(
 
   return "Keep recording consistently to reveal a clearer trend.";
 }
-

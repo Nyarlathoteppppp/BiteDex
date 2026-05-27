@@ -1,6 +1,7 @@
 import type { FoodCard, MealType, RecognizedFood } from "@/types";
 import { computeRarity } from "@/lib/nutrition";
 import { fallbackFoods } from "@/lib/mock/foods";
+import { getLocalDateKey, getLocalTimeKey } from "@/lib/utils/dates";
 
 export const sampleTodayFoods: FoodCard[] = [
   makeMockFoodCard(fallbackFoods[0], {
@@ -43,12 +44,11 @@ export function makeMockFoodCard(
   return {
     ...food,
     id: options.id ?? crypto.randomUUID(),
-    date: options.date ?? createdAt.slice(0, 10),
-    time: options.time ?? createdAt.slice(11, 16),
+    date: options.date ?? getLocalDateKey(now),
+    time: options.time ?? getLocalTimeKey(now),
     mealType: options.mealType ?? food.estimatedMealType,
     imageUrl: options.imageUrl ?? "/samples/food-placeholder.png",
     rarity: computeRarity(food),
     createdAt,
   };
 }
-
