@@ -36,7 +36,11 @@ export async function POST(request: Request) {
     const mimeType = image.type || "image/jpeg"
 
     const { GoogleGenAI } = await import("@google/genai")
-    const ai = new GoogleGenAI({ apiKey })
+    const baseUrl = process.env.GEMINI_BASE_URL
+    const ai = new GoogleGenAI({
+      apiKey,
+      ...(baseUrl ? { httpOptions: { baseUrl } } : {}),
+    })
 
     const prompt = `You are a food recognition AI. Analyze this food photo and return a JSON object with these exact fields:
 - foodName: string (name of the food)
