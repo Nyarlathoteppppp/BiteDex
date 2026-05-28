@@ -36,6 +36,7 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const image = formData.get("image");
     const mealTypeValue = formData.get("mealType");
+    const descriptionValue = formData.get("description");
 
     if (!(image instanceof File)) {
       return NextResponse.json(
@@ -48,6 +49,8 @@ export async function POST(request: Request) {
     }
 
     const mealType = parseMealType(mealTypeValue);
+    const description =
+      typeof descriptionValue === "string" ? descriptionValue.trim().slice(0, 300) : "";
     const arrayBuffer = await image.arrayBuffer();
     const imageBase64 = Buffer.from(arrayBuffer).toString("base64");
     const mimeType = image.type || "image/jpeg";
@@ -57,6 +60,7 @@ export async function POST(request: Request) {
       imageBase64,
       mimeType,
       mealType,
+      description,
     });
 
     return NextResponse.json({

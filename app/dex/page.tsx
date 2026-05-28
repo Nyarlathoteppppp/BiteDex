@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Camera, LibraryBig } from "lucide-react";
-import type { DexItem } from "@/types";
+import { ArrowLeft, Camera, Flame, LibraryBig, Sparkles } from "lucide-react";
+import type { DexItem, Rarity } from "@/types";
 import { getDex } from "@/lib/storage";
 
 export default function DexPage() {
@@ -50,9 +50,9 @@ export default function DexPage() {
           </Link>
         </header>
 
-        <section className="rounded-lg border border-[#eadbc7] bg-white p-5 shadow-sm">
+        <section className="overflow-hidden rounded-lg border border-[#eadbc7] bg-white shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
+            <div className="p-5">
               <p className="text-sm font-semibold uppercase tracking-wider text-[#0f766e]">
                 Collection
               </p>
@@ -60,9 +60,17 @@ export default function DexPage() {
                 {items.length} collected foods
               </h2>
             </div>
-            <p className="text-sm font-medium text-[#766b60]">
-              Cards are merged by food name from localStorage.
-            </p>
+            <div className="grid grid-cols-3 border-t border-[#eadbc7] sm:border-l sm:border-t-0">
+              <DexMetric label="Cards" value={items.length} />
+              <DexMetric
+                label="Eaten"
+                value={items.reduce((sum, item) => sum + item.count, 0)}
+              />
+              <DexMetric
+                label="Rare"
+                value={items.filter((item) => item.rarity === "SR" || item.rarity === "SSR").length}
+              />
+            </div>
           </div>
         </section>
 
@@ -76,7 +84,7 @@ export default function DexPage() {
             </p>
           </section>
         ) : (
-          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {sortedItems.map((item) => (
               <DexCard key={item.foodName} item={item} />
             ))}
@@ -88,52 +96,87 @@ export default function DexPage() {
 }
 
 function DexCard({ item }: { item: DexItem }) {
+  const rarityStyle = getRarityStyle(item.rarity);
+
   return (
-    <article className="overflow-hidden rounded-lg border border-[#eadbc7] bg-white shadow-sm">
-      <div className="aspect-[4/3] bg-[#f8efe3]">
-        {item.imageUrl ? (
-          item.imageUrl.startsWith("data:") || item.imageUrl.startsWith("blob:") ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={item.imageUrl}
-              alt={item.foodName}
-              className="h-full w-full object-cover"
-            />
+    <article className="group overflow-hidden rounded-lg border border-[#eadbc7] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <div className={`h-2 ${rarityStyle.bar}`} />
+
+      <div className="relative bg-[#f8efe3] p-3">
+        <div className="aspect-[4/3] overflow-hidden rounded-lg bg-white">
+          {item.imageUrl ? (
+            item.imageUrl.startsWith("data:") || item.imageUrl.startsWith("blob:") ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={item.imageUrl}
+                alt={item.foodName}
+                className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+              />
+            ) : (
+              <Image
+                src={item.imageUrl}
+                alt={item.foodName}
+                width={640}
+                height={480}
+                className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                unoptimized
+              />
+            )
           ) : (
-            <Image
-              src={item.imageUrl}
-              alt={item.foodName}
-              width={640}
-              height={480}
-              className="h-full w-full object-cover"
-              unoptimized
-            />
-          )
-        ) : null}
+            <div className="flex h-full w-full items-center justify-center text-[#b3a390]">
+              <LibraryBig size={34} />
+            </div>
+          )}
+        </div>
+
+        <div className="absolute left-6 top-6 rounded-lg bg-white/95 px-3 py-2 text-sm font-black shadow-sm">
+          #{stableDexNumber(item.foodName)}
+        </div>
+
+        <div
+          className={`absolute right-6 top-6 rounded-lg px-3 py-2 text-sm font-black shadow-sm ${rarityStyle.badge}`}
+        >
+          {item.rarity}
+        </div>
       </div>
 
       <div className="p-4">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-wider text-[#0f766e]">
-              {item.rarity} · Seen {item.count}x
+              Collected Food
             </p>
-            <h3 className="mt-1 text-xl font-bold">{item.foodName}</h3>
+            <h3 className="mt-1 text-2xl font-black leading-tight">{item.foodName}</h3>
           </div>
-          <p className="rounded-lg bg-[#f8efe3] px-3 py-2 text-sm font-bold">
-            {item.avgKcalMin}-{item.avgKcalMax}
+          <p className="shrink-0 rounded-lg bg-[#231f20] px-3 py-2 text-sm font-bold text-white">
+            x{item.count}
           </p>
         </div>
 
-        <p className="mt-3 text-sm text-[#766b60]">
-          Last seen {formatDateTime(item.lastSeenAt)}
-        </p>
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="rounded-lg bg-[#f8efe3] p-3">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#766b60]">
+              <Flame size={15} />
+              Avg kcal
+            </div>
+            <p className="mt-1 text-lg font-black">
+              {item.avgKcalMin}-{item.avgKcalMax}
+            </p>
+          </div>
+          <div className="rounded-lg bg-[#f8efe3] p-3">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#766b60]">
+              <Sparkles size={15} />
+              Last seen
+            </div>
+            <p className="mt-1 text-sm font-bold">{formatDateTime(item.lastSeenAt)}</p>
+          </div>
+        </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
           {item.tags.slice(0, 5).map((tag) => (
             <span
               key={tag}
-              className="rounded-lg bg-[#d9f3ea] px-2 py-1 text-xs font-semibold text-[#0f766e]"
+              className="rounded-lg bg-[#d9f3ea] px-2.5 py-1 text-xs font-bold text-[#0f766e]"
             >
               {tag}
             </span>
@@ -142,6 +185,57 @@ function DexCard({ item }: { item: DexItem }) {
       </div>
     </article>
   );
+}
+
+function DexMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="min-w-[88px] px-5 py-4 text-center">
+      <p className="text-2xl font-black">{value}</p>
+      <p className="mt-1 text-xs font-bold uppercase tracking-wider text-[#766b60]">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+function getRarityStyle(rarity: Rarity): {
+  bar: string;
+  badge: string;
+} {
+  if (rarity === "SSR") {
+    return {
+      bar: "bg-[#ef4444]",
+      badge: "bg-[#fee2e2] text-[#b91c1c]",
+    };
+  }
+
+  if (rarity === "SR") {
+    return {
+      bar: "bg-[#f97316]",
+      badge: "bg-[#ffedd5] text-[#c2410c]",
+    };
+  }
+
+  if (rarity === "R") {
+    return {
+      bar: "bg-[#0f766e]",
+      badge: "bg-[#d9f3ea] text-[#0f766e]",
+    };
+  }
+
+  return {
+    bar: "bg-[#b3a390]",
+    badge: "bg-[#f8efe3] text-[#665f56]",
+  };
+}
+
+function stableDexNumber(foodName: string): string {
+  const value =
+    foodName.split("").reduce((sum, character) => sum + character.charCodeAt(0), 0) %
+      900 +
+    100;
+
+  return String(value);
 }
 
 function formatDateTime(value: string): string {

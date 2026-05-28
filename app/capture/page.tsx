@@ -34,6 +34,7 @@ export default function CapturePage() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [savedImageUrl, setSavedImageUrl] = useState<string>("");
+  const [foodDescription, setFoodDescription] = useState<string>("");
   const [result, setResult] = useState<FoodCard | null>(null);
   const [status, setStatus] = useState<string>("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -74,7 +75,9 @@ export default function CapturePage() {
 
     try {
       const recognized =
-        mode === "mock" ? makeMockRecognition(mealType) : await analyzeWithGemini(file, mealType);
+        mode === "mock"
+          ? makeMockRecognition(mealType)
+          : await analyzeWithGemini(file, mealType, foodDescription);
 
       setResult(toFoodCard(recognized));
       setStatus(mode === "mock" ? "Mock analysis ready." : "Gemini analysis ready.");
@@ -177,6 +180,27 @@ export default function CapturePage() {
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div className="mt-5">
+              <label
+                htmlFor="food-description"
+                className="text-sm font-semibold text-[#766b60]"
+              >
+                What did you eat?
+              </label>
+              <textarea
+                id="food-description"
+                value={foodDescription}
+                onChange={(event) => setFoodDescription(event.target.value)}
+                rows={3}
+                maxLength={300}
+                placeholder="e.g. half bowl of rice, two pieces of fried chicken, a little sauce"
+                className="mt-2 w-full resize-none rounded-lg border border-[#e4d3be] bg-white px-3 py-3 text-sm leading-6 outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#d9f3ea]"
+              />
+              <p className="mt-1 text-xs font-medium text-[#85786c]">
+                Optional. This helps Gemini estimate food type and portion more accurately.
+              </p>
             </div>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -299,10 +323,15 @@ export default function CapturePage() {
   );
 }
 
-async function analyzeWithGemini(file: File, mealType: MealType): Promise<RecognizedFood> {
+async function analyzeWithGemini(
+  file: File,
+  mealType: MealType,
+  description: string,
+): Promise<RecognizedFood> {
   const formData = new FormData();
   formData.append("image", file);
   formData.append("mealType", mealType);
+  formData.append("description", description.trim());
 
   const response = await fetch("/api/recognize", {
     method: "POST",
