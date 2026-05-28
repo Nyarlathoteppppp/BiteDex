@@ -63,6 +63,13 @@ export type FoodCard = RecognizedFood & {
   imageUrl: string;
   rarity: Rarity;
   createdAt: string;
+  feedingReview?: {
+    message: string;
+    reason: string;
+    suggestion: string;
+    model: string;
+    generatedAt: string;
+  };
 };
 
 export type PetSourceFood = Pick<

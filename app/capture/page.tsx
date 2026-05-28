@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 import type { FoodCard, MealType, RecognizedFood } from "@/types";
 import { mealTypes } from "@/types";
-import { addFoodCard } from "@/lib/storage";
+import { addFoodCard, getTodayLog } from "@/lib/storage";
+import { computePetState } from "@/lib/nutrition";
 import { getFallbackFood, makeMockRecognition } from "@/lib/mock/foods";
 import { makeMockFoodCard } from "@/lib/mock/cards";
 import { getLocalDateKey, getLocalTimeKey } from "@/lib/utils/dates";
@@ -166,15 +167,42 @@ export default function CapturePage() {
     setStatus("Fallback card ready.");
   }
 
-  function saveResult() {
+  async function saveResult() {
     if (!result) {
       return;
     }
 
     try {
-      addFoodCard(result);
+      const todayLog = getTodayLog();
+      const totalAfterFeed = {
+        records: 1,
+        kcalMin: result.kcalMin,
+        kcalMax: result.kcalMax,
+        protein: result.protein,
+        carbs: result.carbs,
+        fat: result.fat,
+      };
+      const petStateAfterFeed = computePetState([result], language);
+      const review = await fetchFeedingReviewForSave({
+        food: result,
+        petState: petStateAfterFeed,
+        todayTotal: totalAfterFeed,
+        previousFoods: todayLog.foods.map((f) => f.foodName),
+        language,
+      });
+
+      addFoodCard({
+        ...result,
+        feedingReview: review
+          ? {
+              ...review,
+              model: "deepseek-v4-flash",
+              generatedAt: new Date().toISOString(),
+            }
+          : undefined,
+      });
       setSaved(true);
-      setStatus("Added to Food Dex.");
+      setStatus(language === "zh" ? "已加入图鉴（含宠物回复）" : "Added to Food Dex with pet reply.");
     } catch (error) {
       const msg = error instanceof Error ? error.message : "Unknown error";
       if (msg.includes("quota") || msg.includes("QuotaExceeded") || msg.includes("storage")) {
@@ -419,6 +447,50 @@ export default function CapturePage() {
       </div>
     </main>
   );
+}
+
+async function fetchFeedingReviewForSave(input: {
+  food: FoodCard;
+  petState: { status: string; title: string; imageUrl: string };
+  todayTotal: { records: number; kcalMin: number; kcalMax: number; protein: number; carbs: number; fat: number };
+  previousFoods: string[];
+  language: "zh" | "en";
+}): Promise<{ message: string; reason: string; suggestion: string } | null> {
+  try {
+    const response = await fetch("/api/feeding-review", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        food: {
+          foodName: input.food.foodName,
+          kcalMin: input.food.kcalMin,
+          kcalMax: input.food.kcalMax,
+          protein: input.food.protein,
+          carbs: input.food.carbs,
+          fat: input.food.fat,
+          tags: input.food.tags,
+          mealType: input.food.mealType,
+          portion: input.food.portion,
+          biteScore: input.food.biteScore,
+        },
+        petState: input.petState,
+        todayTotal: input.todayTotal,
+        previousFoods: input.previousFoods,
+        language: input.language,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok || !data?.success || !data?.data) {
+      return null;
+    }
+    return {
+      message: String(data.data.message || ""),
+      reason: String(data.data.reason || ""),
+      suggestion: String(data.data.suggestion || ""),
+    };
+  } catch {
+    return null;
+  }
 }
 
 function makeRecognitionFallback(

@@ -69,6 +69,22 @@ export function addFoodCard(food: FoodCard): DailyLog {
   return nextLog;
 }
 
+export function saveFoodCardFeedingReview(
+  date: string,
+  foodId: string,
+  review: NonNullable<FoodCard["feedingReview"]>,
+): DailyLog {
+  const logs = getDailyLogs();
+  const currentLog = logs[date] ?? buildDailyLog(date, []);
+  const nextFoods = currentLog.foods.map((food) =>
+    food.id === foodId ? { ...food, feedingReview: review } : food,
+  );
+  const nextLog = buildDailyLog(date, nextFoods);
+  logs[date] = nextLog;
+  writeJson(dailyLogsKey, logs);
+  return nextLog;
+}
+
 export function deleteFoodCard(foodId: string, date: string): DailyLog {
   const logs = getDailyLogs();
   const currentLog = logs[date] ?? buildDailyLog(date, []);

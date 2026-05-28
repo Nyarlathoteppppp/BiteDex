@@ -8,6 +8,7 @@ type FeedingReviewRequest = {
   petState: PetState;
   todayTotal: DailyTotal;
   previousFoods: string[];
+  language?: "zh" | "en";
 };
 
 const SYSTEM_PROMPT = `You are a Food Pet living inside BiteDex, a food collection app. The user just fed you a new food card.
@@ -109,6 +110,12 @@ export async function POST(request: Request) {
 
 function buildFeedingContext(body: FeedingReviewRequest): string {
   const { food, petState, todayTotal, previousFoods } = body;
+  const languageInstruction =
+    body.language === "zh"
+      ? "Reply in Chinese."
+      : body.language === "en"
+        ? "Reply in English."
+        : "Reply in the same language as the food name.";
 
   const lines = [
     `[New food card fed to me]`,
@@ -121,6 +128,7 @@ function buildFeedingContext(body: FeedingReviewRequest): string {
     ``,
     `[My current state: ${petState.title} (${petState.status})]`,
     `[Today so far: ${todayTotal.records} foods, ${todayTotal.kcalMin}-${todayTotal.kcalMax} kcal total, ${todayTotal.protein}g protein]`,
+    `[Language instruction: ${languageInstruction}]`,
   ];
 
   if (previousFoods.length > 0) {

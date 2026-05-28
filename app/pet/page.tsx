@@ -9,7 +9,7 @@ import {
   computePetState,
   generatePetDialogue,
 } from "@/lib/nutrition";
-import { getTodayLog } from "@/lib/storage";
+import { getTodayLog, saveFoodCardFeedingReview } from "@/lib/storage";
 import { useLanguage } from "@/lib/i18n";
 import { LanguageToggle } from "@/app/components/language-toggle";
 
@@ -59,9 +59,16 @@ export default function PetPage() {
       return {
         food,
         petState,
-        dialogue,
+        dialogue: food.feedingReview
+          ? {
+              title: language === "zh" ? "宠物日报" : "Pet Review",
+              message: food.feedingReview.message,
+              reason: food.feedingReview.reason,
+              suggestion: food.feedingReview.suggestion,
+            }
+          : dialogue,
         kcalRange: `${total.kcalMin}-${total.kcalMax} kcal`,
-        isAiLoading: true,
+        isAiLoading: !food.feedingReview,
       };
     });
 
@@ -71,8 +78,16 @@ export default function PetPage() {
       const foodsSoFar = todayLog.foods.slice(0, index + 1);
       const previousFoodNames = foodsSoFar.slice(0, -1).map((f) => f.foodName);
 
-      fetchFeedingReview(msg.food, msg.petState, calculateDailyTotal(foodsSoFar), previousFoodNames)
+      if (!msg.food.feedingReview) {
+        fetchFeedingReview(msg.food, msg.petState, calculateDailyTotal(foodsSoFar), previousFoodNames, language)
         .then((aiDialogue) => {
+          saveFoodCardFeedingReview(msg.food.date, msg.food.id, {
+            message: aiDialogue.message,
+            reason: aiDialogue.reason,
+            suggestion: aiDialogue.suggestion,
+            model: "deepseek-v4-flash",
+            generatedAt: new Date().toISOString(),
+          });
           setFeedingMessages((prev) =>
             prev.map((m) =>
               m.food.id === msg.food.id
@@ -80,6 +95,7 @@ export default function PetPage() {
                 : m,
             ),
           );
+          setTodayLog(getTodayLog());
         })
         .catch(() => {
           setFeedingMessages((prev) =>
@@ -88,6 +104,7 @@ export default function PetPage() {
             ),
           );
         });
+      }
     });
   }, [todayLog, language]);
 
@@ -467,6 +484,7 @@ async function fetchFeedingReview(
   petState: PetState,
   todayTotal: { records: number; kcalMin: number; kcalMax: number; protein: number; carbs: number; fat: number },
   previousFoods: string[],
+  language: "zh" | "en",
 ): Promise<PetDialogue> {
   const response = await fetch("/api/feeding-review", {
     method: "POST",
@@ -487,6 +505,7 @@ async function fetchFeedingReview(
       petState,
       todayTotal,
       previousFoods,
+      language,
     }),
   });
 
