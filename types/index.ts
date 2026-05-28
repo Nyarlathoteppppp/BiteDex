@@ -5,9 +5,9 @@ export const mealTypes = [
   "snack",
   "drink",
   "other",
-] as const
+] as const;
 
-export type MealType = (typeof mealTypes)[number]
+export type MealType = (typeof mealTypes)[number];
 
 export const foodTags = [
   "high_sugar",
@@ -24,11 +24,11 @@ export const foodTags = [
   "balanced",
   "low_calorie",
   "high_calorie",
-] as const
+] as const;
 
-export type FoodTag = (typeof foodTags)[number]
+export type FoodTag = (typeof foodTags)[number];
 
-export type Rarity = "N" | "R" | "SR" | "SSR"
+export type Rarity = "N" | "R" | "SR" | "SSR";
 
 export type PetStatus =
   | "normal"
@@ -37,99 +37,107 @@ export type PetStatus =
   | "tired"
   | "sugar_rush"
   | "overloaded"
+  | "protein_power"
+  | "diet_mode";
 
 export type RecognizedFood = {
-  foodName: string
-  portion: string
-  estimatedMealType: MealType
-  kcalMin: number
-  kcalMax: number
-  protein: number
-  carbs: number
-  fat: number
-  tags: FoodTag[]
-  confidence: number
-  biteScore: number
-  advice: string
-}
+  foodName: string;
+  portion: string;
+  estimatedMealType: MealType;
+  kcalMin: number;
+  kcalMax: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  tags: FoodTag[];
+  confidence: number;
+  biteScore: number;
+  advice: string;
+};
 
 export type FoodCard = RecognizedFood & {
-  id: string
-  date: string
-  time: string
-  mealType: MealType
-  imageUrl: string
-  rarity: Rarity
-  createdAt: string
-}
+  id: string;
+  date: string;
+  time: string;
+  mealType: MealType;
+  imageUrl: string;
+  rarity: Rarity;
+  createdAt: string;
+};
 
 export type DailyTotal = {
-  records: number
-  kcalMin: number
-  kcalMax: number
-  protein: number
-  carbs: number
-  fat: number
-}
+  records: number;
+  kcalMin: number;
+  kcalMax: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+};
 
 export type PetState = {
-  status: PetStatus
-  title: string
-  imageUrl: string
-}
+  status: PetStatus;
+  title: string;
+  imageUrl: string;
+};
 
 export type PetDialogue = {
-  title: string
-  message: string
-  reason: string
-  suggestion: string
-}
+  title: string;
+  message: string;
+  reason: string;
+  suggestion: string;
+};
 
 export type DailyHighlights = {
-  highestCalorie?: FoodCard
-  highestProtein?: FoodCard
-  calorieAssassin?: FoodCard
-}
+  highestCalorie?: FoodCard;
+  highestProtein?: FoodCard;
+  calorieAssassin?: FoodCard;
+};
 
 export type DailyLog = {
-  date: string
-  foods: FoodCard[]
-  total: DailyTotal
-  highlights: DailyHighlights
-  petState: PetState
-  dialogue: PetDialogue
-}
+  date: string;
+  foods: FoodCard[];
+  total: DailyTotal;
+  highlights: DailyHighlights;
+  petState: PetState;
+  dialogue: PetDialogue;
+};
 
 export type DexItem = {
-  foodName: string
-  firstSeenAt: string
-  lastSeenAt: string
-  count: number
-  imageUrl: string
-  tags: FoodTag[]
-  rarity: Rarity
-  avgKcalMin: number
-  avgKcalMax: number
-}
+  foodName: string;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  count: number;
+  imageUrl: string;
+  tags: FoodTag[];
+  rarity: Rarity;
+  avgKcalMin: number;
+  avgKcalMax: number;
+};
 
-export type DailyLogsByDate = Record<string, DailyLog>
+export type DailyLogsByDate = Record<string, DailyLog>;
 
-export type DexByFoodName = Record<string, DexItem>
+export type DexByFoodName = Record<string, DexItem>;
 
-export type PetStatusDistribution = Record<PetStatus, number>
+export type PetStatusDistribution = Record<PetStatus, number>;
 
 export type SevenDayAnalysis = {
-  recordedDays: number
-  foodCards: number
-  averageDailyKcalMin: number
-  averageDailyKcalMax: number
-  highestCalorieDay?: { date: string; kcalMax: number }
-  lowestCalorieDay?: { date: string; kcalMin: number }
-  highSugarDays: number
-  highFatDays: number
-  highProteinDays: number
-  overloadedDays: number
-  petStatusDistribution: PetStatusDistribution
-  summary: string
-  advice: string
-}
+  recordedDays: number;
+  foodCards: number;
+  averageDailyKcalMin: number;
+  averageDailyKcalMax: number;
+  highestCalorieDay?: {
+    date: string;
+    kcalMax: number;
+  };
+  lowestCalorieDay?: {
+    date: string;
+    kcalMin: number;
+  };
+  highSugarDays: number;
+  highFatDays: number;
+  highProteinDays: number;
+  overloadedDays: number;
+  petStatusDistribution: PetStatusDistribution;
+  summary: string;
+  advice: string;
+};

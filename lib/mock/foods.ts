@@ -1,5 +1,4 @@
-import type { FoodTag, MealType, RecognizedFood } from "@/types"
-import { foodTags } from "@/types"
+import type { FoodTag, MealType, RecognizedFood } from "@/types";
 
 export const fallbackFoods: RecognizedFood[] = [
   {
@@ -72,87 +71,68 @@ export const fallbackFoods: RecognizedFood[] = [
     biteScore: 38,
     advice: "High in sugar with low protein. Better treated as an occasional snack.",
   },
-  {
-    foodName: "Burger",
-    portion: "1 piece",
-    estimatedMealType: "lunch",
-    kcalMin: 450,
-    kcalMax: 650,
-    protein: 25,
-    carbs: 40,
-    fat: 28,
-    tags: ["high_fat", "fast_food", "high_calorie"],
-    confidence: 0.75,
-    biteScore: 42,
-    advice: "High in calories and fat. Treat as occasional.",
-  },
-  {
-    foodName: "Noodles",
-    portion: "1 bowl",
-    estimatedMealType: "dinner",
-    kcalMin: 400,
-    kcalMax: 550,
-    protein: 12,
-    carbs: 60,
-    fat: 15,
-    tags: ["high_carb"],
-    confidence: 0.7,
-    biteScore: 50,
-    advice: "Moderate meal. Watch the sodium.",
-  },
-  {
-    foodName: "Coffee",
-    portion: "1 cup",
-    estimatedMealType: "breakfast",
-    kcalMin: 5,
-    kcalMax: 50,
-    protein: 1,
-    carbs: 2,
-    fat: 0,
-    tags: ["drink", "low_calorie"],
-    confidence: 0.85,
-    biteScore: 70,
-    advice: "Almost zero calories if black. Watch the sugar add-ons.",
-  },
-  {
-    foodName: "Fruit Plate",
-    portion: "1 plate",
-    estimatedMealType: "snack",
-    kcalMin: 80,
-    kcalMax: 150,
-    protein: 2,
-    carbs: 25,
-    fat: 1,
-    tags: ["low_calorie", "balanced"],
-    confidence: 0.8,
-    biteScore: 88,
-    advice: "Excellent snack choice. Rich in vitamins!",
-  },
-  {
-    foodName: "Pizza",
-    portion: "2 slices",
-    estimatedMealType: "dinner",
-    kcalMin: 450,
-    kcalMax: 600,
-    protein: 18,
-    carbs: 50,
-    fat: 22,
-    tags: ["high_fat", "high_carb", "fast_food"],
-    confidence: 0.73,
-    biteScore: 35,
-    advice: "Tasty but calorie-dense. One slice is enough.",
-  },
-]
+];
+
+export function getFallbackFood(
+  foodName: string,
+  mealType: MealType = "other",
+): RecognizedFood {
+  const fallback = fallbackFoods.find(
+    (food) => food.foodName.toLowerCase() === foodName.toLowerCase(),
+  );
+
+  if (!fallback) {
+    return {
+      foodName,
+      portion: "1 serving",
+      estimatedMealType: mealType,
+      kcalMin: 300,
+      kcalMax: 500,
+      protein: 12,
+      carbs: 48,
+      fat: 16,
+      tags: ["balanced"],
+      confidence: 0.5,
+      biteScore: 60,
+      advice: "This is a general fallback estimate. Use it only when recognition fails.",
+    };
+  }
+
+  return {
+    ...fallback,
+    estimatedMealType: mealType,
+  };
+}
 
 export function makeMockRecognition(mealType: MealType = "snack"): RecognizedFood {
-  const candidates = fallbackFoods.filter((f) =>
-    mealType === "other" ? true : f.estimatedMealType === mealType,
-  )
-  const pool = candidates.length > 0 ? candidates : fallbackFoods
-  return { ...pool[Math.floor(Math.random() * pool.length)], estimatedMealType: mealType }
+  const candidates = fallbackFoods.filter((food) =>
+    mealType === "other" ? true : food.estimatedMealType === mealType,
+  );
+  const pool = candidates.length > 0 ? candidates : fallbackFoods;
+
+  return {
+    ...pool[Math.floor(Math.random() * pool.length)],
+    estimatedMealType: mealType,
+  };
 }
 
 export function normalizeTags(tags: string[]): FoodTag[] {
-  const allowed = new Set<string>(foodTags)
-  return tags.filter((tag): tag is FoodTag => allowed.has(tag))
+  const allowed = new Set<FoodTag>([
+    "high_sugar",
+    "high_fat",
+    "high_carb",
+    "high_protein",
+    "sweet",
+    "dessert",
+    "drink",
+    "snack",
+    "fried",
+    "creamy",
+    "fast_food",
+    "balanced",
+    "low_calorie",
+    "high_calorie",
+  ]);
+
+  return tags.filter((tag): tag is FoodTag => allowed.has(tag as FoodTag));
 }
