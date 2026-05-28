@@ -61,6 +61,7 @@ export async function POST(request: Request) {
       mimeType,
       mealType,
       description,
+      model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
     });
 
     return NextResponse.json({
@@ -68,12 +69,14 @@ export async function POST(request: Request) {
       data,
     });
   } catch (error) {
+    const formattedError = formatRecognitionError(error);
+
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Recognition failed.",
+        error: formattedError.message,
       },
-      { status: 500 },
+      { status: formattedError.status },
     );
   }
 }
@@ -84,4 +87,35 @@ function parseMealType(value: FormDataEntryValue | null): MealType {
   }
 
   return "other";
+}
+
+function formatRecognitionError(error: unknown): {
+  message: string;
+  status: number;
+} {
+  const message = error instanceof Error ? error.message : String(error);
+
+  if (
+    message.includes("429") ||
+    message.includes("RESOURCE_EXHAUSTED") ||
+    message.toLowerCase().includes("quota")
+  ) {
+    return {
+      message:
+        "Gemini quota is temporarily exhausted. BiteDex generated a fallback card instead.",
+      status: 429,
+    };
+  }
+
+  if (message.toLowerCase().includes("api key")) {
+    return {
+      message: "Gemini API key is invalid or missing.",
+      status: 503,
+    };
+  }
+
+  return {
+    message: "Gemini recognition failed. BiteDex generated a fallback card instead.",
+    status: 500,
+  };
 }

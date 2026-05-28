@@ -11,17 +11,19 @@ export async function recognizeFoodWithGemini({
   mimeType,
   mealType,
   description,
+  model = "gemini-2.5-flash",
 }: {
   apiKey: string;
   imageBase64: string;
   mimeType: string;
   mealType: MealType;
   description?: string;
+  model?: string;
 }): Promise<RecognizedFood> {
   const ai = new GoogleGenAI({ apiKey });
 
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model,
     contents: [
       {
         role: "user",

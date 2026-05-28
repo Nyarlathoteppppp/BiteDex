@@ -7,6 +7,7 @@ import {
   ChartNoAxesCombined,
   LibraryBig,
   MessageCircle,
+  PackageOpen,
   Trash2,
 } from "lucide-react";
 import type { DailyLog } from "@/types";
@@ -51,7 +52,7 @@ export default function Home() {
             <h1 className="mt-0.5 text-2xl font-bold tracking-normal sm:mt-1 sm:text-3xl">一口图鉴</h1>
           </div>
 
-          <nav className="grid grid-cols-4 gap-2 sm:flex sm:flex-wrap">
+          <nav className="grid grid-cols-5 gap-2 sm:flex sm:flex-wrap">
             <Link
               href="/capture"
               className="inline-flex flex-col items-center gap-1 rounded-lg bg-[#0f766e] px-3 py-2 text-xs font-semibold text-white shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
@@ -72,6 +73,13 @@ export default function Home() {
             >
               <MessageCircle size={18} />
               <span>Pet</span>
+            </Link>
+            <Link
+              href="/pet-warehouse"
+              className="inline-flex flex-col items-center gap-1 rounded-lg border border-[#e4d3be] bg-white px-3 py-2 text-xs font-semibold sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
+            >
+              <PackageOpen size={18} />
+              <span>Box</span>
             </Link>
             <Link
               href="/analysis"

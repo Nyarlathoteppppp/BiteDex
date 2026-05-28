@@ -65,6 +65,38 @@ export type FoodCard = RecognizedFood & {
   createdAt: string;
 };
 
+export type PetSourceFood = Pick<
+  FoodCard,
+  | "id"
+  | "foodName"
+  | "portion"
+  | "kcalMin"
+  | "kcalMax"
+  | "protein"
+  | "carbs"
+  | "fat"
+  | "tags"
+  | "rarity"
+>;
+
+export type GeneratedPet = {
+  id: string;
+  generationIndex: number;
+  name: string;
+  title: string;
+  trait: string;
+  mood: string;
+  description: string;
+  imageUrl: string;
+  sourceFoodIds: string[];
+  sourceFoodNames: string[];
+  tags: FoodTag[];
+  kcalMin: number;
+  kcalMax: number;
+  createdAt: string;
+  prompt: string;
+};
+
 export type DailyTotal = {
   records: number;
   kcalMin: number;
@@ -117,6 +149,8 @@ export type DexItem = {
 export type DailyLogsByDate = Record<string, DailyLog>;
 
 export type DexByFoodName = Record<string, DexItem>;
+
+export type PetWarehouse = Record<string, GeneratedPet>;
 
 export type PetStatusDistribution = Record<PetStatus, number>;
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Camera, MessageCircle } from "lucide-react";
+import { ArrowLeft, Camera, MessageCircle, PackageOpen } from "lucide-react";
 import type { DailyLog, FoodCard, PetDialogue, PetState } from "@/types";
 import {
   calculateDailyTotal,
@@ -73,13 +73,22 @@ export default function PetPage() {
             <h1 className="mt-2 text-2xl font-bold sm:mt-3 sm:text-3xl">Pet Room</h1>
           </div>
 
-          <Link
-            href="/capture"
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#0f766e] px-3 py-2 text-xs font-semibold text-white shadow-sm sm:gap-2 sm:px-4 sm:text-sm"
-          >
-            <Camera size={16} />
-            Feed
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/pet-warehouse"
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#e4d3be] bg-white px-3 py-2 text-xs font-semibold shadow-sm sm:gap-2 sm:px-4 sm:text-sm"
+            >
+              <PackageOpen size={16} />
+              Box
+            </Link>
+            <Link
+              href="/capture"
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#0f766e] px-3 py-2 text-xs font-semibold text-white shadow-sm sm:gap-2 sm:px-4 sm:text-sm"
+            >
+              <Camera size={16} />
+              Feed
+            </Link>
+          </div>
         </header>
 
         <section className="overflow-hidden rounded-lg border border-[#eadbc7] bg-white shadow-sm">

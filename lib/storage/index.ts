@@ -5,12 +5,15 @@ import type {
   DailyLogsByDate,
   DexByFoodName,
   FoodCard,
+  GeneratedPet,
+  PetWarehouse,
 } from "@/types";
 import { buildDailyLog, mergeDexItem } from "@/lib/nutrition";
 import { getLocalDateKey } from "@/lib/utils/dates";
 
 export const dailyLogsKey = "bitedex.dailyLogs.v1";
 export const dexKey = "bitedex.dex.v1";
+export const petWarehouseKey = "bitedex.petWarehouse.v1";
 
 export function getDailyLogs(): DailyLogsByDate {
   return readJson<DailyLogsByDate>(dailyLogsKey, {});
@@ -18,6 +21,30 @@ export function getDailyLogs(): DailyLogsByDate {
 
 export function getDex(): DexByFoodName {
   return readJson<DexByFoodName>(dexKey, {});
+}
+
+export function getPetWarehouse(): PetWarehouse {
+  return readJson<PetWarehouse>(petWarehouseKey, {});
+}
+
+export function getPetWarehouseItems(): GeneratedPet[] {
+  return Object.values(getPetWarehouse()).sort(
+    (left, right) =>
+      new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
+  );
+}
+
+export function hasGeneratedPetForGeneration(generationIndex: number): boolean {
+  return Boolean(getPetWarehouse()[String(generationIndex)]);
+}
+
+export function addGeneratedPet(pet: GeneratedPet): GeneratedPet {
+  const warehouse = getPetWarehouse();
+
+  warehouse[String(pet.generationIndex)] = pet;
+  writeJson(petWarehouseKey, warehouse);
+
+  return pet;
 }
 
 export function getTodayLog(today = new Date()): DailyLog {
@@ -57,9 +84,19 @@ export function deleteFoodCard(foodId: string, date: string): DailyLog {
   return nextLog;
 }
 
+export function getAllFoodCards(): FoodCard[] {
+  return Object.values(getDailyLogs())
+    .flatMap((log) => log.foods)
+    .sort(
+      (left, right) =>
+        new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
+    );
+}
+
 export function clearBiteDexData(): void {
   window.localStorage.removeItem(dailyLogsKey);
   window.localStorage.removeItem(dexKey);
+  window.localStorage.removeItem(petWarehouseKey);
 }
 
 function rebuildDexFromLogs(logs: DailyLogsByDate): DexByFoodName {

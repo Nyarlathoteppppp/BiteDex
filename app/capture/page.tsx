@@ -8,13 +8,20 @@ import {
   Check,
   FlaskConical,
   MessageCircle,
+  PackageOpen,
   Sparkles,
 } from "lucide-react";
-import type { FoodCard, MealType, RecognizedFood } from "@/types";
+import type { FoodCard, GeneratedPet, MealType, PetSourceFood, RecognizedFood } from "@/types";
 import { mealTypes } from "@/types";
-import { addFoodCard } from "@/lib/storage";
+import {
+  addFoodCard,
+  addGeneratedPet,
+  getAllFoodCards,
+  hasGeneratedPetForGeneration,
+} from "@/lib/storage";
 import { getFallbackFood, makeMockRecognition } from "@/lib/mock/foods";
 import { makeMockFoodCard } from "@/lib/mock/cards";
+import { toPetSourceFood } from "@/lib/pet-warehouse/profile";
 import { getLocalDateKey, getLocalTimeKey } from "@/lib/utils/dates";
 
 type AnalyzeMode = "mock" | "gemini";
@@ -29,6 +36,16 @@ type RecognizeApiResponse =
       error: string;
     };
 
+type GeneratePetApiResponse =
+  | {
+      success: true;
+      data: GeneratedPet;
+    }
+  | {
+      success: false;
+      error: string;
+    };
+
 export default function CapturePage() {
   const [mealType, setMealType] = useState<MealType>("lunch");
   const [file, setFile] = useState<File | null>(null);
@@ -37,10 +54,14 @@ export default function CapturePage() {
   const [foodDescription, setFoodDescription] = useState<string>("");
   const [result, setResult] = useState<FoodCard | null>(null);
   const [status, setStatus] = useState<string>("");
+  const [saveStatus, setSaveStatus] = useState<string>("");
+  const [isPreparingImage, setIsPreparingImage] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isGeneratingPet, setIsGeneratingPet] = useState(false);
+  const [generatedPet, setGeneratedPet] = useState<GeneratedPet | null>(null);
   const [saved, setSaved] = useState(false);
 
-  const canAnalyze = Boolean(file && previewUrl);
+  const canAnalyze = Boolean(file && previewUrl) && !isPreparingImage;
 
   const fallbackOptions = useMemo(
     () => ["Rice Bowl", "Fried Chicken", "Milk Tea", "Salad", "Chocolate Cake"],
@@ -48,9 +69,11 @@ export default function CapturePage() {
   );
 
   async function handleFileChange(nextFile: File | null) {
-    setFile(nextFile);
+    setFile(null);
     setResult(null);
     setSaved(false);
+    setGeneratedPet(null);
+    setSaveStatus("");
     setStatus("");
 
     if (!nextFile) {
@@ -59,8 +82,29 @@ export default function CapturePage() {
       return;
     }
 
-    setPreviewUrl(URL.createObjectURL(nextFile));
-    setSavedImageUrl(await readFileAsDataUrl(nextFile));
+    setIsPreparingImage(true);
+    setStatus("Preparing photo...");
+
+    try {
+      const prepared = await prepareImageForUpload(nextFile);
+
+      setFile(prepared.file);
+      setPreviewUrl(prepared.dataUrl);
+      setSavedImageUrl(prepared.dataUrl);
+      setStatus(
+        prepared.normalized
+          ? "Photo ready. It was resized for faster Gemini analysis."
+          : "Photo ready.",
+      );
+    } catch (error) {
+      setStatus(
+        error instanceof Error
+          ? `Photo failed: ${error.message}`
+          : "Photo failed. Choose another image.",
+      );
+    } finally {
+      setIsPreparingImage(false);
+    }
   }
 
   async function analyze(mode: AnalyzeMode) {
@@ -71,6 +115,7 @@ export default function CapturePage() {
 
     setIsAnalyzing(true);
     setSaved(false);
+    setSaveStatus("");
     setStatus(mode === "mock" ? "Generating mock food card..." : "Calling Gemini...");
 
     try {
@@ -80,13 +125,21 @@ export default function CapturePage() {
           : await analyzeWithGemini(file, mealType, foodDescription);
 
       setResult(toFoodCard(recognized));
+      setGeneratedPet(null);
       setStatus(mode === "mock" ? "Mock analysis ready." : "Gemini analysis ready.");
     } catch (error) {
-      setStatus(
-        error instanceof Error
-          ? `Gemini failed: ${error.message}`
-          : "Gemini failed. Use mock or fallback.",
-      );
+      const message = getFriendlyErrorMessage(error);
+
+      if (mode === "gemini") {
+        const fallback = makeRecognitionFallback(mealType, foodDescription);
+
+        setResult(toFoodCard(fallback));
+        setGeneratedPet(null);
+        setStatus(`${message} A fallback food card is ready and can still be saved.`);
+        return;
+      }
+
+      setStatus(message);
     } finally {
       setIsAnalyzing(false);
     }
@@ -95,17 +148,55 @@ export default function CapturePage() {
   function useFallback(foodName: string) {
     setResult(toFoodCard(getFallbackFood(foodName, mealType)));
     setSaved(false);
+    setGeneratedPet(null);
+    setSaveStatus("");
     setStatus("Fallback card ready.");
   }
 
-  function saveResult() {
+  async function saveResult() {
     if (!result) {
       return;
     }
 
     addFoodCard(result);
     setSaved(true);
-    setStatus("Added to today's timeline.");
+    setGeneratedPet(null);
+
+    const allFoods = getAllFoodCards();
+    const nextUnlock = getNextMissingPetUnlock(allFoods);
+
+    if (!nextUnlock) {
+      const remainder = allFoods.length % 3;
+      const remainingToUnlock = remainder === 0 ? 3 : 3 - remainder;
+      setSaveStatus(
+        `Added to today's timeline. ${remainingToUnlock} more card${
+          remainingToUnlock === 1 ? "" : "s"
+        } to unlock a warehouse pet.`,
+      );
+      return;
+    }
+
+    setIsGeneratingPet(true);
+    setSaveStatus("Added to today's timeline. Creating a new warehouse pet with Doubao...");
+
+    try {
+      const pet = await generateWarehousePet(
+        nextUnlock.foods.map((food) => toPetSourceFood(food)),
+        nextUnlock.generationIndex,
+      );
+
+      addGeneratedPet(pet);
+      setGeneratedPet(pet);
+      setSaveStatus(`New warehouse pet unlocked: ${pet.name}.`);
+    } catch (error) {
+      setSaveStatus(
+        error instanceof Error
+          ? `Food saved. Pet generation failed: ${error.message}`
+          : "Food saved. Pet generation failed.",
+      );
+    } finally {
+      setIsGeneratingPet(false);
+    }
   }
 
   function toFoodCard(food: RecognizedFood): FoodCard {
@@ -153,8 +244,7 @@ export default function CapturePage() {
               )}
               <input
                 type="file"
-                accept="image/*"
-                capture="environment"
+                accept="image/*,.heic,.heif"
                 className="sr-only"
                 onChange={(event) => handleFileChange(event.target.files?.[0] ?? null)}
               />
@@ -204,21 +294,21 @@ export default function CapturePage() {
             <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3">
               <button
                 type="button"
-                disabled={!canAnalyze || isAnalyzing}
+                disabled={!canAnalyze || isAnalyzing || isPreparingImage}
                 onClick={() => analyze("mock")}
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#e4d3be] bg-white px-3 py-2.5 text-xs font-bold disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-4 sm:py-3 sm:text-sm"
               >
                 <FlaskConical size={16} />
-                Mock
+                {isPreparingImage ? "Preparing" : "Mock"}
               </button>
               <button
                 type="button"
-                disabled={!canAnalyze || isAnalyzing}
+                disabled={!canAnalyze || isAnalyzing || isPreparingImage}
                 onClick={() => analyze("gemini")}
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#0f766e] px-3 py-2.5 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-4 sm:py-3 sm:text-sm"
               >
                 <Sparkles size={16} />
-                Gemini
+                {isAnalyzing ? "Analyzing" : "Gemini"}
               </button>
             </div>
 
@@ -285,14 +375,50 @@ export default function CapturePage() {
                 <button
                   type="button"
                   onClick={saveResult}
-                  disabled={saved}
+                  disabled={saved || isGeneratingPet}
                   className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#231f20] px-4 py-2.5 text-sm font-bold text-white disabled:cursor-default disabled:bg-[#7b746b] sm:py-3"
                 >
                   <Check size={18} />
-                  {saved ? "Added" : "Add to Today"}
+                  {isGeneratingPet ? "Creating Pet..." : saved ? "Added" : "Add to Today"}
                 </button>
+
+                {saveStatus ? (
+                  <p className="rounded-lg bg-[#f8efe3] p-3 text-sm font-semibold leading-6 text-[#665f56]">
+                    {saveStatus}
+                  </p>
+                ) : null}
+
+                {generatedPet ? (
+                  <div className="overflow-hidden rounded-lg border border-[#d9f3ea] bg-[#f3fbf8]">
+                    <div className="grid grid-cols-[92px_1fr] gap-3 p-3 sm:grid-cols-[120px_1fr] sm:p-4">
+                      <div className="aspect-square overflow-hidden rounded-lg bg-white">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={generatedPet.imageUrl}
+                          alt={generatedPet.name}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold uppercase tracking-wider text-[#0f766e]">
+                          Warehouse pet unlocked
+                        </p>
+                        <h3 className="mt-1 truncate text-xl font-black">
+                          {generatedPet.name}
+                        </h3>
+                        <p className="mt-1 text-sm font-semibold text-[#3b3430]">
+                          {generatedPet.title}
+                        </p>
+                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#665f56] sm:text-sm">
+                          {generatedPet.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
                 {saved ? (
-                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
                     <Link
                       href="/"
                       className="inline-flex items-center justify-center rounded-lg border border-[#e4d3be] bg-white px-3 py-2.5 text-xs font-bold sm:px-4 sm:py-3 sm:text-sm"
@@ -305,6 +431,13 @@ export default function CapturePage() {
                     >
                       <MessageCircle size={16} />
                       Pet Reply
+                    </Link>
+                    <Link
+                      href="/pet-warehouse"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#e4d3be] bg-white px-3 py-2.5 text-xs font-bold sm:gap-2 sm:px-4 sm:py-3 sm:text-sm"
+                    >
+                      <PackageOpen size={16} />
+                      Warehouse
                     </Link>
                   </div>
                 ) : null}
@@ -321,6 +454,96 @@ export default function CapturePage() {
   );
 }
 
+function getNextMissingPetUnlock(
+  foods: FoodCard[],
+): { generationIndex: number; foods: FoodCard[] } | null {
+  const unlockableGenerations = Math.floor(foods.length / 3);
+
+  for (let generationIndex = 1; generationIndex <= unlockableGenerations; generationIndex += 1) {
+    if (!hasGeneratedPetForGeneration(generationIndex)) {
+      const startIndex = (generationIndex - 1) * 3;
+      return {
+        generationIndex,
+        foods: foods.slice(startIndex, startIndex + 3),
+      };
+    }
+  }
+
+  return null;
+}
+
+function makeRecognitionFallback(
+  mealType: MealType,
+  description: string,
+): RecognizedFood {
+  const normalized = description.toLowerCase();
+
+  if (normalized.includes("milk tea") || normalized.includes("奶茶")) {
+    return getFallbackFood("Milk Tea", mealType);
+  }
+
+  if (
+    normalized.includes("cake") ||
+    normalized.includes("dessert") ||
+    normalized.includes("甜品") ||
+    normalized.includes("蛋糕")
+  ) {
+    return getFallbackFood("Chocolate Cake", mealType);
+  }
+
+  if (normalized.includes("fried") || normalized.includes("炸")) {
+    return getFallbackFood("Fried Chicken", mealType);
+  }
+
+  if (normalized.includes("salad") || normalized.includes("沙拉")) {
+    return getFallbackFood("Salad", mealType);
+  }
+
+  if (normalized.includes("rice") || normalized.includes("饭")) {
+    return getFallbackFood("Rice Bowl", mealType);
+  }
+
+  return makeMockRecognition(mealType);
+}
+
+function getFriendlyErrorMessage(error: unknown): string {
+  const rawMessage = error instanceof Error ? error.message : String(error);
+
+  if (
+    rawMessage.includes("429") ||
+    rawMessage.includes("RESOURCE_EXHAUSTED") ||
+    rawMessage.toLowerCase().includes("quota")
+  ) {
+    return "Gemini quota is temporarily exhausted.";
+  }
+
+  if (rawMessage.includes("503") || rawMessage.includes("GEMINI_API_KEY")) {
+    return "Gemini is not configured on this server.";
+  }
+
+  return rawMessage ? `Gemini failed: ${rawMessage}` : "Gemini failed.";
+}
+
+async function generateWarehousePet(
+  foods: PetSourceFood[],
+  generationIndex: number,
+): Promise<GeneratedPet> {
+  const response = await fetch("/api/generate-pet", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ foods, generationIndex }),
+  });
+  const payload = await readApiJson<GeneratePetApiResponse>(response);
+
+  if (!response.ok || !payload.success) {
+    throw new Error(payload.success ? "Pet generation failed." : payload.error);
+  }
+
+  return payload.data;
+}
+
 async function analyzeWithGemini(
   file: File,
   mealType: MealType,
@@ -335,13 +558,111 @@ async function analyzeWithGemini(
     method: "POST",
     body: formData,
   });
-  const payload = (await response.json()) as RecognizeApiResponse;
+  const payload = await readApiJson<RecognizeApiResponse>(response);
 
   if (!response.ok || !payload.success) {
     throw new Error(payload.success ? "Recognition failed." : payload.error);
   }
 
   return payload.data;
+}
+
+async function readApiJson<T>(response: Response): Promise<T> {
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new Error(`Server returned ${response.status} without JSON.`);
+  }
+}
+
+async function prepareImageForUpload(file: File): Promise<{
+  file: File;
+  dataUrl: string;
+  normalized: boolean;
+}> {
+  if (!file.type.startsWith("image/") && !isHeicLike(file.name)) {
+    throw new Error("Please choose an image file.");
+  }
+
+  const originalDataUrl = await readFileAsDataUrl(file);
+
+  try {
+    const image = await loadImage(originalDataUrl);
+    const maxSide = 1400;
+    const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+    const width = Math.max(1, Math.round(image.width * scale));
+    const height = Math.max(1, Math.round(image.height * scale));
+    const canvas = document.createElement("canvas");
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      throw new Error("Canvas is not available.");
+    }
+
+    context.drawImage(image, 0, 0, width, height);
+
+    const blob = await canvasToBlob(canvas, "image/jpeg", 0.86);
+    const normalizedFile = new File([blob], replaceImageExtension(file.name), {
+      type: "image/jpeg",
+      lastModified: Date.now(),
+    });
+
+    return {
+      file: normalizedFile,
+      dataUrl: await readFileAsDataUrl(normalizedFile),
+      normalized: true,
+    };
+  } catch {
+    return {
+      file,
+      dataUrl: originalDataUrl,
+      normalized: false,
+    };
+  }
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Cannot load this image in the browser."));
+    image.src = src;
+  });
+}
+
+function canvasToBlob(
+  canvas: HTMLCanvasElement,
+  type: string,
+  quality: number,
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(blob);
+          return;
+        }
+
+        reject(new Error("Cannot convert this image."));
+      },
+      type,
+      quality,
+    );
+  });
+}
+
+function replaceImageExtension(fileName: string): string {
+  const baseName = fileName.replace(/\.[^.]+$/, "");
+  return `${baseName || "bitedex-food"}.jpg`;
+}
+
+function isHeicLike(fileName: string): boolean {
+  return /\.(heic|heif)$/i.test(fileName);
 }
 
 function readFileAsDataUrl(file: File): Promise<string> {
