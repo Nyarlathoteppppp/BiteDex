@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Camera, MessageCircle, PackageOpen } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, Camera, Loader2, MessageCircle, PackageOpen, Send } from "lucide-react";
 import type { DailyLog, FoodCard, PetDialogue, PetState } from "@/types";
 import {
   calculateDailyTotal,
@@ -18,14 +18,28 @@ type PetMessage = {
   kcalRange: string;
 };
 
+type ChatMessage = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+};
+
 export default function PetPage() {
   const [todayLog, setTodayLog] = useState<DailyLog | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setTodayLog(getTodayLog());
   }, []);
 
-  const messages = useMemo(() => {
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages]);
+
+  const feedingMessages = useMemo(() => {
     if (!todayLog) {
       return [];
     }
@@ -45,6 +59,73 @@ export default function PetPage() {
     });
   }, [todayLog]);
 
+  async function handleSend() {
+    const text = inputValue.trim();
+    if (!text || isSending || !todayLog) return;
+
+    const userMsg: ChatMessage = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      content: text,
+    };
+    setChatMessages((prev) => [...prev, userMsg]);
+    setInputValue("");
+    setIsSending(true);
+
+    try {
+      const response = await fetch("/api/pet-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userMessage: text,
+          petState: todayLog.petState,
+          todayTotal: todayLog.total,
+          recentFoods: todayLog.foods.slice(-5).map((f) => ({
+            foodName: f.foodName,
+            kcalMin: f.kcalMin,
+            kcalMax: f.kcalMax,
+            protein: f.protein,
+            carbs: f.carbs,
+            fat: f.fat,
+            tags: f.tags,
+            mealType: f.mealType,
+          })),
+          chatHistory: chatMessages.slice(-10).map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.reply) {
+        const assistantMsg: ChatMessage = {
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+          content: data.reply,
+        };
+        setChatMessages((prev) => [...prev, assistantMsg]);
+      } else {
+        const errorMsg: ChatMessage = {
+          id: `error-${Date.now()}`,
+          role: "assistant",
+          content: `⚠️ ${data.error || "Failed to get reply"}`,
+        };
+        setChatMessages((prev) => [...prev, errorMsg]);
+      }
+    } catch {
+      const errorMsg: ChatMessage = {
+        id: `error-${Date.now()}`,
+        role: "assistant",
+        content: "⚠️ Network error. Please try again.",
+      };
+      setChatMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setIsSending(false);
+    }
+  }
+
   if (!todayLog) {
     return (
       <main className="min-h-screen bg-[#fffaf3] px-4 py-5 text-[#231f20]">
@@ -56,7 +137,7 @@ export default function PetPage() {
   }
 
   const currentPet = todayLog.petState;
-  const latestMessage = messages[messages.length - 1];
+  const latestMessage = feedingMessages[feedingMessages.length - 1];
 
   return (
     <main className="min-h-screen bg-[#fffaf3] text-[#231f20]">
@@ -124,28 +205,86 @@ export default function PetPage() {
           </div>
         </section>
 
+        {/* Feeding Log */}
         <section className="rounded-lg border border-[#eadbc7] bg-white p-4 shadow-sm sm:p-5">
           <div className="flex items-center gap-2">
             <MessageCircle size={18} className="text-[#0f766e]" />
-            <h2 className="text-lg font-bold sm:text-xl">Feeding Chat</h2>
+            <h2 className="text-lg font-bold sm:text-xl">Feeding Log</h2>
           </div>
 
-          {messages.length === 0 ? (
-            <div className="mt-4 flex min-h-[200px] flex-col items-center justify-center rounded-lg bg-[#f8efe3] p-5 text-center text-[#766b60] sm:min-h-[300px] sm:p-6">
-              <MessageCircle size={32} />
-              <p className="mt-3 text-sm font-semibold">No pet replies yet.</p>
-              <p className="mt-1 max-w-md text-xs leading-5 sm:text-sm sm:leading-7">
-                Upload a food photo, add it to today, and your pet will answer
-                here in a chat bubble.
-              </p>
+          {feedingMessages.length === 0 ? (
+            <div className="mt-4 flex min-h-[120px] flex-col items-center justify-center rounded-lg bg-[#f8efe3] p-5 text-center text-[#766b60]">
+              <p className="text-sm font-semibold">No food cards yet today.</p>
             </div>
           ) : (
-            <div className="mt-4 flex flex-col gap-4 sm:mt-5 sm:gap-5">
-              {messages.map((message) => (
+            <div className="mt-4 flex flex-col gap-3 sm:gap-4">
+              {feedingMessages.map((message) => (
                 <FeedingTurn key={message.food.id} message={message} />
               ))}
             </div>
           )}
+        </section>
+
+        {/* AI Chat */}
+        <section className="rounded-lg border border-[#0f766e]/30 bg-white p-4 shadow-sm sm:p-5">
+          <div className="flex items-center gap-2">
+            <MessageCircle size={18} className="text-[#0f766e]" />
+            <h2 className="text-lg font-bold sm:text-xl">Chat with Pet</h2>
+            <span className="rounded bg-[#d9f3ea] px-2 py-0.5 text-[10px] font-bold text-[#0f766e] sm:text-xs">
+              AI
+            </span>
+          </div>
+
+          <div className="mt-4 flex max-h-[400px] flex-col gap-3 overflow-y-auto sm:max-h-[500px]">
+            {chatMessages.length === 0 && (
+              <div className="flex min-h-[100px] items-center justify-center rounded-lg bg-[#f8efe3] p-4 text-center text-sm text-[#766b60]">
+                Ask your pet anything about today&apos;s diet, nutrition tips, or just chat!
+              </div>
+            )}
+            {chatMessages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`max-w-[85%] rounded-lg p-3 text-sm leading-6 sm:max-w-[75%] ${
+                  msg.role === "user"
+                    ? "ml-auto bg-[#0f766e] text-white"
+                    : "mr-auto bg-[#f8efe3] text-[#3b3430]"
+                }`}
+              >
+                {msg.content}
+              </div>
+            ))}
+            {isSending && (
+              <div className="mr-auto flex items-center gap-2 rounded-lg bg-[#f8efe3] p-3 text-sm text-[#766b60]">
+                <Loader2 size={14} className="animate-spin" />
+                Thinking...
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSend();
+            }}
+            className="mt-4 flex gap-2"
+          >
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Ask your pet..."
+              disabled={isSending}
+              className="flex-1 rounded-lg border border-[#e4d3be] bg-white px-3 py-2.5 text-sm outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#d9f3ea] disabled:opacity-50"
+            />
+            <button
+              type="submit"
+              disabled={!inputValue.trim() || isSending}
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#0f766e] text-white disabled:opacity-50 sm:h-auto sm:w-auto sm:px-4 sm:py-2.5"
+            >
+              <Send size={16} />
+            </button>
+          </form>
         </section>
       </div>
     </main>
