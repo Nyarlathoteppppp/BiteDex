@@ -11,17 +11,11 @@ import {
   PackageOpen,
   Sparkles,
 } from "lucide-react";
-import type { FoodCard, GeneratedPet, MealType, PetSourceFood, RecognizedFood } from "@/types";
+import type { FoodCard, MealType, RecognizedFood } from "@/types";
 import { mealTypes } from "@/types";
-import {
-  addFoodCard,
-  addGeneratedPet,
-  getAllFoodCards,
-  hasGeneratedPetForGeneration,
-} from "@/lib/storage";
+import { addFoodCard } from "@/lib/storage";
 import { getFallbackFood, makeMockRecognition } from "@/lib/mock/foods";
 import { makeMockFoodCard } from "@/lib/mock/cards";
-import { toPetSourceFood } from "@/lib/pet-warehouse/profile";
 import { getLocalDateKey, getLocalTimeKey } from "@/lib/utils/dates";
 
 type AnalyzeMode = "mock" | "ai";
@@ -36,16 +30,6 @@ type RecognizeApiResponse =
       error: string;
     };
 
-type GeneratePetApiResponse =
-  | {
-      success: true;
-      data: GeneratedPet;
-    }
-  | {
-      success: false;
-      error: string;
-    };
-
 export default function CapturePage() {
   const [mealType, setMealType] = useState<MealType>("lunch");
   const [file, setFile] = useState<File | null>(null);
@@ -54,11 +38,8 @@ export default function CapturePage() {
   const [foodDescription, setFoodDescription] = useState<string>("");
   const [result, setResult] = useState<FoodCard | null>(null);
   const [status, setStatus] = useState<string>("");
-  const [saveStatus, setSaveStatus] = useState<string>("");
   const [isPreparingImage, setIsPreparingImage] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isGeneratingPet, setIsGeneratingPet] = useState(false);
-  const [generatedPet, setGeneratedPet] = useState<GeneratedPet | null>(null);
   const [saved, setSaved] = useState(false);
 
   const canAnalyze = Boolean(file && previewUrl) && !isPreparingImage;
@@ -72,8 +53,6 @@ export default function CapturePage() {
     setFile(null);
     setResult(null);
     setSaved(false);
-    setGeneratedPet(null);
-    setSaveStatus("");
     setStatus("");
 
     if (!nextFile) {
@@ -115,7 +94,6 @@ export default function CapturePage() {
 
     setIsAnalyzing(true);
     setSaved(false);
-    setSaveStatus("");
     setStatus(mode === "mock" ? "Generating mock food card..." : "Calling AI...");
 
     try {
@@ -125,7 +103,6 @@ export default function CapturePage() {
           : await analyzeWithAI(file, mealType, foodDescription);
 
       setResult(toFoodCard(recognized));
-      setGeneratedPet(null);
       setStatus(mode === "mock" ? "Mock analysis ready." : "AI analysis ready.");
     } catch (error) {
       const message = getFriendlyErrorMessage(error);
@@ -134,7 +111,6 @@ export default function CapturePage() {
         const fallback = makeRecognitionFallback(mealType, foodDescription);
 
         setResult(toFoodCard(fallback));
-        setGeneratedPet(null);
         setStatus(`${message} A fallback food card is ready and can still be saved.`);
         return;
       }
@@ -148,8 +124,6 @@ export default function CapturePage() {
   function useFallback(foodName: string) {
     setResult(toFoodCard(getFallbackFood(foodName, mealType)));
     setSaved(false);
-    setGeneratedPet(null);
-    setSaveStatus("");
     setStatus("Fallback card ready.");
   }
 
@@ -160,43 +134,7 @@ export default function CapturePage() {
 
     addFoodCard(result);
     setSaved(true);
-    setGeneratedPet(null);
-
-    const allFoods = getAllFoodCards();
-    const nextUnlock = getNextMissingPetUnlock(allFoods);
-
-    if (!nextUnlock) {
-      const remainder = allFoods.length % 3;
-      const remainingToUnlock = remainder === 0 ? 3 : 3 - remainder;
-      setSaveStatus(
-        `Added to today's timeline. ${remainingToUnlock} more card${
-          remainingToUnlock === 1 ? "" : "s"
-        } to unlock a warehouse pet.`,
-      );
-      return;
-    }
-
-    setIsGeneratingPet(true);
-    setSaveStatus("Added to today's timeline. Creating a new warehouse pet with AI...");
-
-    try {
-      const pet = await generateWarehousePet(
-        nextUnlock.foods.map((food) => toPetSourceFood(food)),
-        nextUnlock.generationIndex,
-      );
-
-      addGeneratedPet(pet);
-      setGeneratedPet(pet);
-      setSaveStatus(`New warehouse pet unlocked: ${pet.name}.`);
-    } catch (error) {
-      setSaveStatus(
-        error instanceof Error
-          ? `Food saved. Pet generation failed: ${error.message}`
-          : "Food saved. Pet generation failed.",
-      );
-    } finally {
-      setIsGeneratingPet(false);
-    }
+    setStatus("Added to today's timeline.");
   }
 
   function toFoodCard(food: RecognizedFood): FoodCard {
@@ -375,47 +313,12 @@ export default function CapturePage() {
                 <button
                   type="button"
                   onClick={saveResult}
-                  disabled={saved || isGeneratingPet}
+                  disabled={saved}
                   className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#231f20] px-4 py-2.5 text-sm font-bold text-white disabled:cursor-default disabled:bg-[#7b746b] sm:py-3"
                 >
                   <Check size={18} />
-                  {isGeneratingPet ? "Creating Pet..." : saved ? "Added" : "Add to Today"}
+                  {saved ? "Added" : "Add to Today"}
                 </button>
-
-                {saveStatus ? (
-                  <p className="rounded-lg bg-[#f8efe3] p-3 text-sm font-semibold leading-6 text-[#665f56]">
-                    {saveStatus}
-                  </p>
-                ) : null}
-
-                {generatedPet ? (
-                  <div className="overflow-hidden rounded-lg border border-[#d9f3ea] bg-[#f3fbf8]">
-                    <div className="grid grid-cols-[92px_1fr] gap-3 p-3 sm:grid-cols-[120px_1fr] sm:p-4">
-                      <div className="aspect-square overflow-hidden rounded-lg bg-white">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={generatedPet.imageUrl}
-                          alt={generatedPet.name}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold uppercase tracking-wider text-[#0f766e]">
-                          Warehouse pet unlocked
-                        </p>
-                        <h3 className="mt-1 truncate text-xl font-black">
-                          {generatedPet.name}
-                        </h3>
-                        <p className="mt-1 text-sm font-semibold text-[#3b3430]">
-                          {generatedPet.title}
-                        </p>
-                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#665f56] sm:text-sm">
-                          {generatedPet.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
 
                 {saved ? (
                   <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -430,14 +333,14 @@ export default function CapturePage() {
                       className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#e4d3be] bg-white px-3 py-2.5 text-xs font-bold sm:gap-2 sm:px-4 sm:py-3 sm:text-sm"
                     >
                       <MessageCircle size={16} />
-                      Pet Reply
+                      Pet
                     </Link>
                     <Link
                       href="/pet-warehouse"
                       className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#e4d3be] bg-white px-3 py-2.5 text-xs font-bold sm:gap-2 sm:px-4 sm:py-3 sm:text-sm"
                     >
                       <PackageOpen size={16} />
-                      Warehouse
+                      Box
                     </Link>
                   </div>
                 ) : null}
@@ -452,24 +355,6 @@ export default function CapturePage() {
       </div>
     </main>
   );
-}
-
-function getNextMissingPetUnlock(
-  foods: FoodCard[],
-): { generationIndex: number; foods: FoodCard[] } | null {
-  const unlockableGenerations = Math.floor(foods.length / 3);
-
-  for (let generationIndex = 1; generationIndex <= unlockableGenerations; generationIndex += 1) {
-    if (!hasGeneratedPetForGeneration(generationIndex)) {
-      const startIndex = (generationIndex - 1) * 3;
-      return {
-        generationIndex,
-        foods: foods.slice(startIndex, startIndex + 3),
-      };
-    }
-  }
-
-  return null;
 }
 
 function makeRecognitionFallback(
@@ -525,26 +410,6 @@ function getFriendlyErrorMessage(error: unknown): string {
   }
 
   return rawMessage ? `AI failed: ${rawMessage}` : "AI failed.";
-}
-
-async function generateWarehousePet(
-  foods: PetSourceFood[],
-  generationIndex: number,
-): Promise<GeneratedPet> {
-  const response = await fetch("/api/generate-pet", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ foods, generationIndex }),
-  });
-  const payload = await readApiJson<GeneratePetApiResponse>(response);
-
-  if (!response.ok || !payload.success) {
-    throw new Error(payload.success ? "Pet generation failed." : payload.error);
-  }
-
-  return payload.data;
 }
 
 async function analyzeWithAI(
