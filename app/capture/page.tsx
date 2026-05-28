@@ -24,7 +24,7 @@ import { makeMockFoodCard } from "@/lib/mock/cards";
 import { toPetSourceFood } from "@/lib/pet-warehouse/profile";
 import { getLocalDateKey, getLocalTimeKey } from "@/lib/utils/dates";
 
-type AnalyzeMode = "mock" | "gemini";
+type AnalyzeMode = "mock" | "ai";
 
 type RecognizeApiResponse =
   | {
@@ -93,7 +93,7 @@ export default function CapturePage() {
       setSavedImageUrl(prepared.dataUrl);
       setStatus(
         prepared.normalized
-          ? "Photo ready. It was resized for faster Gemini analysis."
+          ? "Photo ready. It was resized for faster AI analysis."
           : "Photo ready.",
       );
     } catch (error) {
@@ -116,21 +116,21 @@ export default function CapturePage() {
     setIsAnalyzing(true);
     setSaved(false);
     setSaveStatus("");
-    setStatus(mode === "mock" ? "Generating mock food card..." : "Calling Gemini...");
+    setStatus(mode === "mock" ? "Generating mock food card..." : "Calling AI...");
 
     try {
       const recognized =
         mode === "mock"
           ? makeMockRecognition(mealType)
-          : await analyzeWithGemini(file, mealType, foodDescription);
+          : await analyzeWithAI(file, mealType, foodDescription);
 
       setResult(toFoodCard(recognized));
       setGeneratedPet(null);
-      setStatus(mode === "mock" ? "Mock analysis ready." : "Gemini analysis ready.");
+      setStatus(mode === "mock" ? "Mock analysis ready." : "AI analysis ready.");
     } catch (error) {
       const message = getFriendlyErrorMessage(error);
 
-      if (mode === "gemini") {
+      if (mode === "ai") {
         const fallback = makeRecognitionFallback(mealType, foodDescription);
 
         setResult(toFoodCard(fallback));
@@ -177,7 +177,7 @@ export default function CapturePage() {
     }
 
     setIsGeneratingPet(true);
-    setSaveStatus("Added to today's timeline. Creating a new warehouse pet with Doubao...");
+    setSaveStatus("Added to today's timeline. Creating a new warehouse pet with AI...");
 
     try {
       const pet = await generateWarehousePet(
@@ -287,7 +287,7 @@ export default function CapturePage() {
                 className="mt-2 w-full resize-none rounded-lg border border-[#e4d3be] bg-white px-3 py-2.5 text-sm leading-6 outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#d9f3ea]"
               />
               <p className="mt-1 text-[11px] font-medium text-[#85786c] sm:text-xs">
-                Optional. Helps Gemini estimate portion more accurately.
+                Optional. Helps AI estimate portion more accurately.
               </p>
             </div>
 
@@ -304,11 +304,11 @@ export default function CapturePage() {
               <button
                 type="button"
                 disabled={!canAnalyze || isAnalyzing || isPreparingImage}
-                onClick={() => analyze("gemini")}
+                onClick={() => analyze("ai")}
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#0f766e] px-3 py-2.5 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-4 sm:py-3 sm:text-sm"
               >
                 <Sparkles size={16} />
-                {isAnalyzing ? "Analyzing" : "Gemini"}
+                {isAnalyzing ? "Analyzing" : "AI"}
               </button>
             </div>
 
@@ -444,7 +444,7 @@ export default function CapturePage() {
               </div>
             ) : (
               <div className="mt-3 flex min-h-[200px] items-center justify-center rounded-lg bg-[#f8efe3] p-5 text-center text-sm text-[#766b60] sm:mt-4 sm:min-h-[360px] sm:p-6">
-                Upload a food photo and run mock or Gemini analysis.
+                Upload a food photo and run mock or AI analysis.
               </div>
             )}
           </div>
@@ -514,14 +514,17 @@ function getFriendlyErrorMessage(error: unknown): string {
     rawMessage.includes("RESOURCE_EXHAUSTED") ||
     rawMessage.toLowerCase().includes("quota")
   ) {
-    return "Gemini quota is temporarily exhausted.";
+    return "AI quota is temporarily exhausted.";
   }
 
-  if (rawMessage.includes("503") || rawMessage.includes("GEMINI_API_KEY")) {
-    return "Gemini is not configured on this server.";
+  if (
+    rawMessage.includes("503") ||
+    rawMessage.includes("AI_API_KEY")
+  ) {
+    return "AI is not configured on this server.";
   }
 
-  return rawMessage ? `Gemini failed: ${rawMessage}` : "Gemini failed.";
+  return rawMessage ? `AI failed: ${rawMessage}` : "AI failed.";
 }
 
 async function generateWarehousePet(
@@ -544,7 +547,7 @@ async function generateWarehousePet(
   return payload.data;
 }
 
-async function analyzeWithGemini(
+async function analyzeWithAI(
   file: File,
   mealType: MealType,
   description: string,

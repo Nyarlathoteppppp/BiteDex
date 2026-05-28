@@ -99,6 +99,7 @@ export function computeRarity(food: {
 
 export function computePetState(foods: FoodCard[]): PetState {
   const total = calculateDailyTotal(foods);
+  const latestFood = foods[foods.length - 1];
   const highSugarCount = foods.filter(isHighSugarFood).length;
   const highFatCount = foods.filter(isHighFatFood).length;
   const highProteinCount = foods.filter(isHighProteinFood).length;
@@ -106,19 +107,37 @@ export function computePetState(foods: FoodCard[]): PetState {
 
   let status: PetStatus = "normal";
 
-  if (total.kcalMin > 2800) {
+  if (foods.length === 0) {
+    status = "normal";
+  } else if (
+    total.kcalMax >= 2200 ||
+    total.kcalMin >= 1700 ||
+    foods.some((food) => food.kcalMax >= 900)
+  ) {
     status = "overloaded";
-  } else if (highSugarCount >= 2) {
+  } else if (isHighSugarFood(latestFood) || highSugarCount >= 2) {
     status = "sugar_rush";
-  } else if (total.kcalMin > 2200 || highFatCount >= 2) {
+  } else if (
+    isHighFatFood(latestFood) ||
+    highFatCount >= 2 ||
+    total.fat >= 45 ||
+    total.kcalMax >= 1400
+  ) {
     status = "chubby";
-  } else if (total.protein >= 90 || highProteinCount >= 2) {
+  } else if (total.protein >= 55 || highProteinCount >= 2) {
     status = "protein_power";
-  } else if (total.records >= 2 && total.kcalMax < 1000 && lightBalancedCount >= 1) {
-    status = "diet_mode";
-  } else if (total.records >= 2 && total.kcalMax < 1000) {
+  } else if (
+    (total.records === 1 && total.kcalMax <= 450 && total.protein < 18) ||
+    (total.records >= 2 && total.kcalMax < 900 && total.protein < 30)
+  ) {
     status = "tired";
-  } else if (total.kcalMin >= 1200 && total.kcalMin <= 2200 && total.protein >= 60) {
+  } else if (
+    lightBalancedCount >= 1 &&
+    total.kcalMax <= 1000 &&
+    total.protein >= 20
+  ) {
+    status = "diet_mode";
+  } else if (total.kcalMin >= 650 && total.kcalMax <= 1800 && total.protein >= 35) {
     status = "energized";
   }
 
@@ -170,7 +189,7 @@ export function generatePetDialogue(
     return {
       title: "Pet Review",
       message: `I tasted ${latestFood.foodName}, but I still feel sleepy.`,
-      reason: "There are multiple food cards, but the total energy is still low.",
+      reason: `Today's cards are still light: ${total.kcalMin}-${total.kcalMax} kcal and ${total.protein}g protein.`,
       suggestion: "Feed me a balanced meal with protein, grains, and vegetables.",
     };
   }
@@ -197,7 +216,7 @@ export function generatePetDialogue(
     return {
       title: "Pet Review",
       message: `${latestFood.foodName} feels light. I can hop around easily.`,
-      reason: "Today's cards look lighter and relatively balanced.",
+      reason: `Today's cards look lighter but still balanced enough: ${total.protein}g protein.`,
       suggestion: "Nice light mode. Just make sure I still get enough energy later.",
     };
   }

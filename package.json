@@ -9,7 +9,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@google/genai": "latest",
     "lucide-react": "latest",
     "next": "latest",
     "react": "latest",

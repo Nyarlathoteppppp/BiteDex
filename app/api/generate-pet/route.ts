@@ -28,13 +28,13 @@ const generatePetRequestSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const apiKey = process.env.ARK_API_KEY;
+  const apiKey = process.env.AI_API_KEY;
 
   if (!apiKey) {
     return NextResponse.json(
       {
         success: false,
-        error: "Missing ARK_API_KEY. Add it to .env.local and restart dev server.",
+        error: "AI image generation is not configured. Add AI_API_KEY to .env.local and restart.",
       },
       { status: 503 },
     );
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "doubao-seedream-5-0-260128",
+          model: process.env.AI_IMAGE_MODEL || "doubao-seedream-5-0-260128",
           prompt,
           size: "2K",
           response_format: "url",
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: extractErrorMessage(responseJson) ?? "Doubao image generation failed.",
+          error: extractErrorMessage(responseJson) ?? "AI image generation failed.",
         },
         { status: response.status },
       );
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: "Doubao response did not include an image URL.",
+          error: "AI response did not include an image URL.",
         },
         { status: 502 },
       );

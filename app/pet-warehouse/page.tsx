@@ -62,7 +62,7 @@ export default function PetWarehousePage() {
                 Every 3 food cards unlock one mini pet.
               </h2>
               <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-[#665f56] sm:text-base sm:leading-7">
-                The newest three food cards are turned into a Doubao-generated
+                The newest three food cards are turned into an AI-generated
                 collectible pet. Each pet keeps the food names, nutrition mood,
                 and card identity as its memory.
               </p>
@@ -81,7 +81,7 @@ export default function PetWarehousePage() {
             <h2 className="mt-4 text-2xl font-black">No warehouse pets yet</h2>
             <p className="mt-2 max-w-md text-sm leading-6 text-[#766b60]">
               Add three food cards from the capture page. The third card will
-              trigger Doubao and unlock your first generated pet.
+              trigger AI and unlock your first generated pet.
             </p>
             <Link
               href="/capture"
@@ -206,4 +206,3 @@ function formatDateTime(value: string): string {
     minute: "2-digit",
   });
 }
-

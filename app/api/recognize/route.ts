@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
 import { mealTypes, type MealType } from "@/types";
-import { recognizeFoodWithGemini } from "@/lib/recognition/gemini";
+import { recognizeFoodWithAI } from "@/lib/recognition/ai";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.AI_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(
         {
           success: false,
-          error: "GEMINI_API_KEY is not configured.",
+          error: "AI recognition is not configured.",
         },
         { status: 503 },
       );
@@ -55,13 +55,13 @@ export async function POST(request: Request) {
     const imageBase64 = Buffer.from(arrayBuffer).toString("base64");
     const mimeType = image.type || "image/jpeg";
 
-    const data = await recognizeFoodWithGemini({
+    const data = await recognizeFoodWithAI({
       apiKey,
       imageBase64,
       mimeType,
       mealType,
       description,
-      model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+      model: process.env.AI_RECOGNITION_MODEL || "doubao-seed-2-0-lite-260428",
     });
 
     return NextResponse.json({
@@ -102,20 +102,20 @@ function formatRecognitionError(error: unknown): {
   ) {
     return {
       message:
-        "Gemini quota is temporarily exhausted. BiteDex generated a fallback card instead.",
+        "AI quota is temporarily exhausted. BiteDex generated a fallback card instead.",
       status: 429,
     };
   }
 
   if (message.toLowerCase().includes("api key")) {
     return {
-      message: "Gemini API key is invalid or missing.",
+      message: "AI key is invalid or missing.",
       status: 503,
     };
   }
 
   return {
-    message: "Gemini recognition failed. BiteDex generated a fallback card instead.",
+    message: "AI recognition failed. BiteDex generated a fallback card instead.",
     status: 500,
   };
 }
