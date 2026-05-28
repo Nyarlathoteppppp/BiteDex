@@ -99,7 +99,6 @@ export function computeRarity(food: {
 
 export function computePetState(foods: FoodCard[]): PetState {
   const total = calculateDailyTotal(foods);
-  const latestFood = foods[foods.length - 1];
   const highSugarCount = foods.filter(isHighSugarFood).length;
   const highFatCount = foods.filter(isHighFatFood).length;
   const highProteinCount = foods.filter(isHighProteinFood).length;
@@ -109,35 +108,23 @@ export function computePetState(foods: FoodCard[]): PetState {
 
   if (foods.length === 0) {
     status = "normal";
-  } else if (
-    total.kcalMax >= 2200 ||
-    total.kcalMin >= 1700 ||
-    foods.some((food) => food.kcalMax >= 900)
-  ) {
+  } else if (total.kcalMin > 2800) {
     status = "overloaded";
-  } else if (isHighSugarFood(latestFood) || highSugarCount >= 2) {
+  } else if (highSugarCount >= 2) {
     status = "sugar_rush";
-  } else if (
-    isHighFatFood(latestFood) ||
-    highFatCount >= 2 ||
-    total.fat >= 45 ||
-    total.kcalMax >= 1400
-  ) {
+  } else if (total.records >= 2 && total.kcalMax < 1000) {
+    status = "tired";
+  } else if (total.kcalMin > 2200 || highFatCount >= 2) {
     status = "chubby";
-  } else if (total.protein >= 55 || highProteinCount >= 2) {
+  } else if (total.protein >= 90 || highProteinCount >= 3) {
     status = "protein_power";
   } else if (
-    (total.records === 1 && total.kcalMax <= 450 && total.protein < 18) ||
-    (total.records >= 2 && total.kcalMax < 900 && total.protein < 30)
-  ) {
-    status = "tired";
-  } else if (
-    lightBalancedCount >= 1 &&
+    lightBalancedCount >= 2 &&
     total.kcalMax <= 1000 &&
     total.protein >= 20
   ) {
     status = "diet_mode";
-  } else if (total.kcalMin >= 650 && total.kcalMax <= 1800 && total.protein >= 35) {
+  } else if (total.kcalMin >= 1200 && total.kcalMin <= 2200 && total.protein >= 60) {
     status = "energized";
   }
 

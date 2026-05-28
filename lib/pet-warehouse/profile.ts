@@ -55,11 +55,11 @@ export function buildGeneratedPetProfile(
 
   if (sugarCount >= 2) {
     return {
-      name: `Sugar Puff ${generationIndex}`,
-      title: "Sweet Spark Pet",
-      trait: "Sugar glow",
-      mood: "Bouncy and bright",
-      description: "Born from sweet bites and drinks, with a shiny candy-like aura.",
+      name: `Sucranite ${generationIndex}`,
+      title: "Fairy-type Food Pokémon",
+      trait: "Sugar Coat",
+      mood: "Hyperactive and sparkly",
+      description: "A fairy-type creature crystallized from sweet foods and sugary drinks. Its candy-shell body glows when it absorbs sugar energy.",
       sourceFoodIds: foods.map((food) => food.id),
       sourceFoodNames,
       tags,
@@ -70,11 +70,11 @@ export function buildGeneratedPetProfile(
 
   if (protein >= 60 || foods.some((food) => food.tags.some((tag) => proteinTags.has(tag)))) {
     return {
-      name: `Protein Cub ${generationIndex}`,
-      title: "Tiny Strength Pet",
-      trait: "Protein power",
-      mood: "Confident and sturdy",
-      description: "A compact little partner shaped by protein-rich meals.",
+      name: `Proteorex ${generationIndex}`,
+      title: "Fighting-type Food Pokémon",
+      trait: "Iron Fist",
+      mood: "Determined and muscular",
+      description: "A fighting-type creature forged from high-protein meals. Its dense, meaty body radiates raw power.",
       sourceFoodIds: foods.map((food) => food.id),
       sourceFoodNames,
       tags,
@@ -85,11 +85,11 @@ export function buildGeneratedPetProfile(
 
   if (kcalMax >= 1800 || fatCount >= 2) {
     return {
-      name: `Roundbite ${generationIndex}`,
-      title: "Cozy Calorie Pet",
-      trait: "Soft energy",
-      mood: "Warm and sleepy",
-      description: "A round food spirit created by rich, oily, or high-energy meals.",
+      name: `Frylax ${generationIndex}`,
+      title: "Fire-type Food Pokémon",
+      trait: "Thick Fat",
+      mood: "Drowsy and well-fed",
+      description: "A fire-type creature born from rich, fried, and high-calorie meals. Its oily golden hide stores enormous thermal energy.",
       sourceFoodIds: foods.map((food) => food.id),
       sourceFoodNames,
       tags,
@@ -100,11 +100,11 @@ export function buildGeneratedPetProfile(
 
   if (lightCount >= 2 || kcalMax <= 1100) {
     return {
-      name: `Leaf Nibble ${generationIndex}`,
-      title: "Light Balance Pet",
-      trait: "Fresh balance",
-      mood: "Calm and floaty",
-      description: "A gentle mini pet inspired by lighter balanced food cards.",
+      name: `Leaflora ${generationIndex}`,
+      title: "Grass-type Food Pokémon",
+      trait: "Natural Cure",
+      mood: "Serene and light",
+      description: "A grass-type creature grown from light balanced meals and fresh ingredients. Leaves and sprouts decorate its gentle body.",
       sourceFoodIds: foods.map((food) => food.id),
       sourceFoodNames,
       tags,
@@ -114,11 +114,11 @@ export function buildGeneratedPetProfile(
   }
 
   return {
-    name: `Bite Buddy ${generationIndex}`,
-    title: "Mixed Meal Pet",
-    trait: "Daily blend",
+    name: `Omnibite ${generationIndex}`,
+    title: "Normal-type Food Pokémon",
+    trait: "Adaptability",
     mood: "Curious and friendly",
-    description: "A small collectible pet formed from this three-card meal pattern.",
+    description: "A normal-type creature assembled from a mixed meal pattern. Its patchwork body reflects the variety of foods it absorbed.",
     sourceFoodIds: foods.map((food) => food.id),
     sourceFoodNames,
     tags,
@@ -128,15 +128,18 @@ export function buildGeneratedPetProfile(
 }
 
 export function buildPetImagePrompt(profile: GeneratedPetProfile): string {
+  const foodList = profile.sourceFoodNames.join(", ");
+  const tagList = profile.tags.join(", ") || "balanced everyday meal";
+
   return [
-    "Create one adorable original mini pet for a food collection app.",
-    `Pet name: ${profile.name}.`,
-    `Theme: ${profile.title}, ${profile.trait}, ${profile.mood}.`,
-    `Inspired by these foods: ${profile.sourceFoodNames.join(", ")}.`,
-    `Nutrition mood tags: ${profile.tags.join(", ") || "balanced everyday meal"}.`,
-    "Full body, cute mascot, soft rounded shape, expressive eyes, collectible creature card style.",
-    "Clean warm light background, centered composition, polished digital illustration.",
-    "No words, no text, no logo, no human, no realistic animal, no scary style.",
+    "Design a single Pokémon-style creature inspired by real food.",
+    `This creature is born from: ${foodList}.`,
+    `Its food attribute tags are: ${tagList}.`,
+    `Personality: ${profile.mood}. Trait: ${profile.trait}.`,
+    "The creature's body, colors, and features should clearly reference the source foods — for example, a rice-based creature might have a white grain-textured body, a fried chicken creature might have golden crispy armor, a milk tea creature might have a boba-pearl tail.",
+    "Pokémon art style: full body, front-facing, cute but battle-ready, expressive eyes, elemental aura matching its food type (fire for fried, water for drinks, grass for salad, fairy for desserts).",
+    "Clean solid-color background, centered composition, high-quality digital illustration, collectible card game style.",
+    "No text, no words, no logo, no human, no realistic animal photo.",
   ].join(" ");
 }
 
