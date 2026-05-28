@@ -233,7 +233,7 @@ export default function CapturePage() {
                 type="button"
                 disabled={!canAnalyze || isAnalyzing || isPreparingImage}
                 onClick={() => analyze("mock")}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#e4d3be] bg-white px-3 py-2.5 text-xs font-bold disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-4 sm:py-3 sm:text-sm"
+                className="inline-flex touch-manipulation items-center justify-center gap-1.5 rounded-lg border border-[#e4d3be] bg-white px-3 py-3 text-xs font-bold active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-4 sm:text-sm"
               >
                 <FlaskConical size={16} />
                 {isPreparingImage ? "Preparing" : "Mock"}
@@ -242,7 +242,7 @@ export default function CapturePage() {
                 type="button"
                 disabled={!canAnalyze || isAnalyzing || isPreparingImage}
                 onClick={() => analyze("ai")}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#0f766e] px-3 py-2.5 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-4 sm:py-3 sm:text-sm"
+                className="inline-flex touch-manipulation items-center justify-center gap-1.5 rounded-lg bg-[#0f766e] px-3 py-3 text-xs font-bold text-white active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-4 sm:text-sm"
               >
                 <Sparkles size={16} />
                 {isAnalyzing ? "Analyzing" : "AI"}
@@ -324,9 +324,9 @@ export default function CapturePage() {
                   type="button"
                   onClick={saveResult}
                   disabled={saved}
-                  className="w-full rounded-full bg-[#1f1b16] px-4 py-3 text-sm font-bold text-white disabled:bg-[#9b856d]"
+                  className="w-full touch-manipulation rounded-full bg-[#1f1b16] px-4 py-4 text-sm font-bold text-white active:scale-[0.98] disabled:bg-[#9b856d] sm:py-3"
                 >
-                  {saved ? "Added to Food Dex" : "Save to Dex"}
+                  {saved ? "Added to Food Dex ✓" : "Save to Dex"}
                 </button>
 
                 {saved ? (
