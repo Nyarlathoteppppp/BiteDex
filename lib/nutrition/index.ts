@@ -13,6 +13,7 @@ import type {
   Rarity,
   SevenDayAnalysis,
 } from "@/types";
+import type { Language } from "@/lib/i18n";
 import { getLocalDateKey } from "@/lib/utils/dates";
 
 const sugarTags = new Set<FoodTag>([
@@ -44,15 +45,15 @@ const petImageByStatus: Record<PetStatus, string> = {
   diet_mode: "/pets/Diet%20Mode.png",
 };
 
-const petTitleByStatus: Record<PetStatus, string> = {
-  normal: "Normal",
-  energized: "Energized",
-  chubby: "Chubby",
-  tired: "Tired",
-  sugar_rush: "Sugar Rush",
-  overloaded: "Energy Overload",
-  protein_power: "Protein Power",
-  diet_mode: "Diet Mode",
+const petTitleByStatus: Record<PetStatus, { zh: string; en: string }> = {
+  normal: { zh: "正常", en: "Normal" },
+  energized: { zh: "元气满满", en: "Energized" },
+  chubby: { zh: "圆润状态", en: "Chubby" },
+  tired: { zh: "低能量", en: "Tired" },
+  sugar_rush: { zh: "糖分亢奋", en: "Sugar Rush" },
+  overloaded: { zh: "能量过载", en: "Energy Overload" },
+  protein_power: { zh: "蛋白质充足", en: "Protein Power" },
+  diet_mode: { zh: "轻盈模式", en: "Diet Mode" },
 };
 
 export function calculateDailyTotal(foods: FoodCard[]): DailyTotal {
@@ -97,7 +98,7 @@ export function computeRarity(food: {
   return rarity;
 }
 
-export function computePetState(foods: FoodCard[]): PetState {
+export function computePetState(foods: FoodCard[], language: Language = "en"): PetState {
   const total = calculateDailyTotal(foods);
   const highSugarCount = foods.filter(isHighSugarFood).length;
   const highFatCount = foods.filter(isHighFatFood).length;
@@ -130,7 +131,7 @@ export function computePetState(foods: FoodCard[]): PetState {
 
   return {
     status,
-    title: petTitleByStatus[status],
+    title: petTitleByStatus[status][language],
     imageUrl: petImageByStatus[status],
   };
 }
@@ -138,12 +139,21 @@ export function computePetState(foods: FoodCard[]): PetState {
 export function generatePetDialogue(
   petState: PetState,
   foods: FoodCard[],
+  language: Language = "en",
 ): PetDialogue {
   const total = calculateDailyTotal(foods);
   const highSugarCount = foods.filter(isHighSugarFood).length;
   const highFatCount = foods.filter(isHighFatFood).length;
 
   if (foods.length === 0) {
+    if (language === "zh") {
+      return {
+        title: "宠物日报",
+        message: "我的便当盒今天还是空的。",
+        reason: "你还没有喂我任何食物卡。",
+        suggestion: "上传一张食物照片，我就能开始品尝并反馈状态。",
+      };
+    }
     return {
       title: "Pet Review",
       message: "My lunchbox is still empty.",
@@ -155,6 +165,14 @@ export function generatePetDialogue(
   const latestFood = foods[foods.length - 1];
 
   if (petState.status === "overloaded") {
+    if (language === "zh") {
+      return {
+        title: "宠物日报",
+        message: `我刚吃了${latestFood.foodName}，肚子快报警了。`,
+        reason: `今天累计摄入已达 ${total.kcalMin}-${total.kcalMax} kcal。`,
+        suggestion: "下一餐试试清淡些，让我少滚两圈，多蹦两下。",
+      };
+    }
     return {
       title: "Pet Review",
       message: `I tried ${latestFood.foodName} and my belly is beeping.`,
@@ -164,6 +182,14 @@ export function generatePetDialogue(
   }
 
   if (petState.status === "sugar_rush") {
+    if (language === "zh") {
+      return {
+        title: "宠物日报",
+        message: `${latestFood.foodName}让我瞬间糖分上头！`,
+        reason: `今天甜食或含糖饮品已经出现 ${highSugarCount} 次。`,
+        suggestion: "下一次搭配一点蛋白质或白水，我就不会乱窜了。",
+      };
+    }
     return {
       title: "Pet Review",
       message: `That ${latestFood.foodName} made my sparkle meter jump.`,
@@ -173,6 +199,14 @@ export function generatePetDialogue(
   }
 
   if (petState.status === "tired") {
+    if (language === "zh") {
+      return {
+        title: "宠物日报",
+        message: `我吃了${latestFood.foodName}，但还是有点没精神。`,
+        reason: `目前总摄入仍偏低：${total.kcalMin}-${total.kcalMax} kcal，蛋白质 ${total.protein}g。`,
+        suggestion: "给我来一顿均衡餐：蛋白质 + 主食 + 蔬菜。",
+      };
+    }
     return {
       title: "Pet Review",
       message: `I tasted ${latestFood.foodName}, but I still feel sleepy.`,
@@ -182,6 +216,14 @@ export function generatePetDialogue(
   }
 
   if (petState.status === "chubby") {
+    if (language === "zh") {
+      return {
+        title: "宠物日报",
+        message: `${latestFood.foodName}很好吃，我今天有点圆滚滚。`,
+        reason: `总热量或高脂食物在上升。高脂卡片数：${highFatCount}。`,
+        suggestion: "下一餐试试瘦蛋白和蔬菜，让我继续轻盈弹跳。",
+      };
+    }
     return {
       title: "Pet Review",
       message: `${latestFood.foodName} was tasty. I am becoming a soft little round bean.`,
@@ -191,6 +233,14 @@ export function generatePetDialogue(
   }
 
   if (petState.status === "protein_power") {
+    if (language === "zh") {
+      return {
+        title: "宠物日报",
+        message: `${latestFood.foodName}让我感觉肌肉在发光！`,
+        reason: `今天蛋白质累计达到 ${total.protein}g。`,
+        suggestion: "这个方向很棒，继续搭配适量碳水和蔬菜更稳。",
+      };
+    }
     return {
       title: "Pet Review",
       message: `${latestFood.foodName} gave me tiny hero muscles.`,
@@ -200,6 +250,14 @@ export function generatePetDialogue(
   }
 
   if (petState.status === "diet_mode") {
+    if (language === "zh") {
+      return {
+        title: "宠物日报",
+        message: `${latestFood.foodName}吃起来很轻盈，我能轻松跳来跳去。`,
+        reason: `今天整体偏轻，但仍相对均衡，蛋白质 ${total.protein}g。`,
+        suggestion: "轻食模式不错，后续记得补充足够能量。",
+      };
+    }
     return {
       title: "Pet Review",
       message: `${latestFood.foodName} feels light. I can hop around easily.`,
@@ -209,6 +267,14 @@ export function generatePetDialogue(
   }
 
   if (petState.status === "energized") {
+    if (language === "zh") {
+      return {
+        title: "宠物日报",
+        message: `${latestFood.foodName}让我眼睛发亮，准备开玩！`,
+        reason: `今日蛋白质 ${total.protein}g，热量也在合理区间。`,
+        suggestion: "继续保持这种均衡喂养，我给你点赞！",
+      };
+    }
     return {
       title: "Pet Review",
       message: `${latestFood.foodName} made me bright-eyed and ready to play.`,
@@ -217,6 +283,14 @@ export function generatePetDialogue(
     };
   }
 
+  if (language === "zh") {
+    return {
+      title: "宠物日报",
+      message: `我刚尝了${latestFood.foodName}，肚子状态稳定。`,
+      reason: "你的饮食模式暂未触发特殊状态。",
+      suggestion: "继续喂我食物卡，我会给你更清晰的状态反馈。",
+    };
+  }
   return {
     title: "Pet Review",
     message: `I nibbled ${latestFood.foodName}. My tummy feels steady.`,
@@ -236,8 +310,8 @@ export function computeHighlights(foods: FoodCard[]): DailyHighlights {
   };
 }
 
-export function buildDailyLog(date: string, foods: FoodCard[]): DailyLog {
-  const petState = computePetState(foods);
+export function buildDailyLog(date: string, foods: FoodCard[], language: Language = "en"): DailyLog {
+  const petState = computePetState(foods, language);
 
   return {
     date,
@@ -245,7 +319,7 @@ export function buildDailyLog(date: string, foods: FoodCard[]): DailyLog {
     total: calculateDailyTotal(foods),
     highlights: computeHighlights(foods),
     petState,
-    dialogue: generatePetDialogue(petState, foods),
+    dialogue: generatePetDialogue(petState, foods, language),
   };
 }
 
@@ -287,6 +361,7 @@ export function mergeDexItem(
 export function getSevenDayAnalysis(
   logsByDate: DailyLogsByDate,
   today = new Date(),
+  language: Language = "en",
 ): SevenDayAnalysis {
   const dates = getRecentDateKeys(today, 7);
   const logs = dates.map((date) => logsByDate[date]).filter(Boolean);
@@ -324,8 +399,8 @@ export function getSevenDayAnalysis(
     highProteinDays,
     overloadedDays,
     petStatusDistribution: computePetStatusDistribution(logs),
-    summary: buildWeeklySummary(recordedDays, highSugarDays, highFatDays, overloadedDays),
-    advice: buildWeeklyAdvice(highSugarDays, highFatDays, overloadedDays),
+    summary: buildWeeklySummary(recordedDays, highSugarDays, highFatDays, overloadedDays, language),
+    advice: buildWeeklyAdvice(highSugarDays, highFatDays, overloadedDays, language),
   };
 }
 
@@ -410,7 +485,15 @@ function buildWeeklySummary(
   highSugarDays: number,
   highFatDays: number,
   overloadedDays: number,
+  language: Language,
 ): string {
+  if (language === "zh") {
+    if (recordedDays === 0) return "近 7 天还没有记录食物卡。";
+    if (overloadedDays > 0) return "近 7 天至少有一天进入了能量过载状态。";
+    if (highSugarDays >= 3) return "这周甜食或含糖饮品出现较频繁。";
+    if (highFatDays >= 3) return "这周高脂食物出现较频繁。";
+    return "你这周的饮食趋势整体比较稳定。";
+  }
   if (recordedDays === 0) {
     return "No food cards were recorded in the last 7 days.";
   }
@@ -434,7 +517,20 @@ function buildWeeklyAdvice(
   highSugarDays: number,
   highFatDays: number,
   overloadedDays: number,
+  language: Language,
 ): string {
+  if (language === "zh") {
+    if (overloadedDays > 0) {
+      return "先减少大份量，再逐步调整零食和甜饮。";
+    }
+    if (highSugarDays >= highFatDays && highSugarDays > 0) {
+      return "优先减少甜饮，通常比减少主餐更快改善周趋势。";
+    }
+    if (highFatDays > 0) {
+      return "尝试把油炸/奶油改成烤制蛋白质搭配蔬菜。";
+    }
+    return "继续稳定记录，趋势会越来越清晰。";
+  }
   if (overloadedDays > 0) {
     return "Reduce oversized meals first, then adjust snacks and sweet drinks.";
   }

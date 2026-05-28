@@ -10,6 +10,8 @@ import {
   generatePetDialogue,
 } from "@/lib/nutrition";
 import { getTodayLog } from "@/lib/storage";
+import { useLanguage } from "@/lib/i18n";
+import { LanguageToggle } from "@/app/components/language-toggle";
 
 type PetMessage = {
   food: FoodCard;
@@ -32,6 +34,7 @@ export default function PetPage() {
   const [inputValue, setInputValue] = useState("");
   const [isSending, setIsSending] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const { language, setLanguage } = useLanguage("zh");
 
   useEffect(() => {
     setTodayLog(getTodayLog());
@@ -49,8 +52,8 @@ export default function PetPage() {
 
     const localMessages = todayLog.foods.map<PetMessage>((food, index) => {
       const foodsSoFar = todayLog.foods.slice(0, index + 1);
-      const petState = computePetState(foodsSoFar);
-      const dialogue = generatePetDialogue(petState, foodsSoFar);
+      const petState = computePetState(foodsSoFar, language);
+      const dialogue = generatePetDialogue(petState, foodsSoFar, language);
       const total = calculateDailyTotal(foodsSoFar);
 
       return {
@@ -86,16 +89,56 @@ export default function PetPage() {
           );
         });
     });
-  }, [todayLog]);
+  }, [todayLog, language]);
+
+  const text = language === "zh"
+    ? {
+        loading: "宠物房加载中...",
+        dashboard: "首页",
+        title: "宠物房",
+        box: "仓库",
+        feed: "投喂",
+        currentMood: "当前情绪",
+        waitBite: "我在等今天的第一口",
+        cards: "卡片数",
+        calories: "热量",
+        protein: "蛋白质",
+        feedingLog: "喂养记录",
+        noCards: "今天还没有食物卡。",
+        chat: "和宠物聊天",
+        askHint: "可以问宠物今天饮食、营养建议，或者随便聊聊！",
+        thinking: "思考中...",
+        ask: "问问你的宠物...",
+        feedSentence: "我喂你",
+      }
+    : {
+        loading: "Loading pet room...",
+        dashboard: "Dashboard",
+        title: "Pet Room",
+        box: "Box",
+        feed: "Feed",
+        currentMood: "Current Mood",
+        waitBite: "I am waiting for today's first bite",
+        cards: "Cards",
+        calories: "Calories",
+        protein: "Protein",
+        feedingLog: "Feeding Log",
+        noCards: "No food cards yet today.",
+        chat: "Chat with Pet",
+        askHint: "Ask your pet anything about today's diet, nutrition tips, or just chat!",
+        thinking: "Thinking...",
+        ask: "Ask your pet...",
+        feedSentence: "I feed you",
+      };
 
   async function handleSend() {
-    const text = inputValue.trim();
-    if (!text || isSending || !todayLog) return;
+    const msg = inputValue.trim();
+    if (!msg || isSending || !todayLog) return;
 
     const userMsg: ChatMessage = {
       id: `user-${Date.now()}`,
       role: "user",
-      content: text,
+      content: msg,
     };
     setChatMessages((prev) => [...prev, userMsg]);
     setInputValue("");
@@ -106,7 +149,7 @@ export default function PetPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userMessage: text,
+          userMessage: msg,
           petState: todayLog.petState,
           todayTotal: todayLog.total,
           recentFoods: todayLog.foods.slice(-5).map((f) => ({
@@ -159,7 +202,7 @@ export default function PetPage() {
     return (
       <main className="min-h-screen bg-[#fffaf3] px-4 py-5 text-[#231f20]">
         <div className="mx-auto max-w-6xl rounded-lg border border-[#eadbc7] bg-white p-5 shadow-sm">
-          Loading pet room...
+          {text.loading}
         </div>
       </main>
     );
@@ -178,25 +221,26 @@ export default function PetPage() {
               className="inline-flex items-center gap-2 text-sm font-semibold text-[#0f766e]"
             >
               <ArrowLeft size={18} />
-              Dashboard
+              {text.dashboard}
             </Link>
-            <h1 className="mt-2 text-2xl font-bold sm:mt-3 sm:text-3xl">Pet Room</h1>
+            <h1 className="mt-2 text-2xl font-bold sm:mt-3 sm:text-3xl">{text.title}</h1>
           </div>
 
           <div className="flex gap-2">
+            <LanguageToggle language={language} onChange={setLanguage} />
             <Link
               href="/pet-warehouse"
               className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#e4d3be] bg-white px-3 py-2 text-xs font-semibold shadow-sm sm:gap-2 sm:px-4 sm:text-sm"
             >
               <PackageOpen size={16} />
-              Box
+              {text.box}
             </Link>
             <Link
               href="/capture"
               className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#0f766e] px-3 py-2 text-xs font-semibold text-white shadow-sm sm:gap-2 sm:px-4 sm:text-sm"
             >
               <Camera size={16} />
-              Feed
+              {text.feed}
             </Link>
           </div>
         </header>
@@ -212,23 +256,23 @@ export default function PetPage() {
 
             <div className="p-4 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-[#0f766e] sm:text-sm">
-                Current Mood
+                {text.currentMood}
               </p>
               <h2 className="mt-1.5 text-xl font-bold sm:mt-2 sm:text-3xl">
                 {latestMessage
-                  ? `I just tasted ${latestMessage.food.foodName}`
-                  : "I am waiting for today's first bite"}
+                  ? (language === "zh" ? `我刚尝了 ${latestMessage.food.foodName}` : `I just tasted ${latestMessage.food.foodName}`)
+                  : text.waitBite}
               </h2>
               <p className="mt-2 max-w-2xl text-base font-semibold leading-7 text-[#3b3430] sm:mt-3 sm:text-lg sm:leading-8">
-                {todayLog.dialogue.message}
+                {(latestMessage?.dialogue.message ?? generatePetDialogue(currentPet, todayLog.foods, language).message)}
               </p>
               <div className="mt-3 grid grid-cols-3 gap-2 sm:mt-5 sm:gap-3">
-                <MiniMetric label="Cards" value={todayLog.total.records} />
+                <MiniMetric label={text.cards} value={todayLog.total.records} />
                 <MiniMetric
-                  label="Calories"
+                  label={text.calories}
                   value={`${todayLog.total.kcalMin}-${todayLog.total.kcalMax}`}
                 />
-                <MiniMetric label="Protein" value={`${todayLog.total.protein}g`} />
+                <MiniMetric label={text.protein} value={`${todayLog.total.protein}g`} />
               </div>
             </div>
           </div>
@@ -238,17 +282,17 @@ export default function PetPage() {
         <section className="rounded-lg border border-[#eadbc7] bg-white p-4 shadow-sm sm:p-5">
           <div className="flex items-center gap-2">
             <MessageCircle size={18} className="text-[#0f766e]" />
-            <h2 className="text-lg font-bold sm:text-xl">Feeding Log</h2>
+            <h2 className="text-lg font-bold sm:text-xl">{text.feedingLog}</h2>
           </div>
 
           {feedingMessages.length === 0 ? (
             <div className="mt-4 flex min-h-[120px] flex-col items-center justify-center rounded-lg bg-[#f8efe3] p-5 text-center text-[#766b60]">
-              <p className="text-sm font-semibold">No food cards yet today.</p>
+              <p className="text-sm font-semibold">{text.noCards}</p>
             </div>
           ) : (
             <div className="mt-4 flex flex-col gap-3 sm:gap-4">
               {feedingMessages.map((message) => (
-                <FeedingTurn key={message.food.id} message={message} />
+                <FeedingTurn key={message.food.id} message={message} feedSentence={text.feedSentence} />
               ))}
             </div>
           )}
@@ -258,7 +302,7 @@ export default function PetPage() {
         <section className="rounded-lg border border-[#0f766e]/30 bg-white p-4 shadow-sm sm:p-5">
           <div className="flex items-center gap-2">
             <MessageCircle size={18} className="text-[#0f766e]" />
-            <h2 className="text-lg font-bold sm:text-xl">Chat with Pet</h2>
+            <h2 className="text-lg font-bold sm:text-xl">{text.chat}</h2>
             <span className="rounded bg-[#d9f3ea] px-2 py-0.5 text-[10px] font-bold text-[#0f766e] sm:text-xs">
               AI
             </span>
@@ -267,7 +311,7 @@ export default function PetPage() {
           <div className="mt-4 flex max-h-[400px] flex-col gap-3 overflow-y-auto sm:max-h-[500px]">
             {chatMessages.length === 0 && (
               <div className="flex min-h-[100px] items-center justify-center rounded-lg bg-[#f8efe3] p-4 text-center text-sm text-[#766b60]">
-                Ask your pet anything about today&apos;s diet, nutrition tips, or just chat!
+                {text.askHint}
               </div>
             )}
             {chatMessages.map((msg) => (
@@ -285,7 +329,7 @@ export default function PetPage() {
             {isSending && (
               <div className="mr-auto flex items-center gap-2 rounded-lg bg-[#f8efe3] p-3 text-sm text-[#766b60]">
                 <Loader2 size={14} className="animate-spin" />
-                Thinking...
+                {text.thinking}
               </div>
             )}
             <div ref={chatEndRef} />
@@ -302,7 +346,7 @@ export default function PetPage() {
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Ask your pet..."
+              placeholder={text.ask}
               disabled={isSending}
               className="flex-1 rounded-lg border border-[#e4d3be] bg-white px-3 py-2.5 text-sm outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#d9f3ea] disabled:opacity-50"
             />
@@ -320,14 +364,14 @@ export default function PetPage() {
   );
 }
 
-function FeedingTurn({ message }: { message: PetMessage }) {
+function FeedingTurn({ message, feedSentence }: { message: PetMessage; feedSentence: string }) {
   return (
     <article className="flex flex-col gap-2 sm:gap-3">
       <div className="ml-auto flex max-w-[90%] items-center gap-2 rounded-lg bg-[#0f766e] p-2.5 text-white sm:max-w-[760px] sm:gap-3 sm:p-3">
         <FoodThumb src={message.food.imageUrl} name={message.food.foodName} />
         <div className="min-w-0">
           <p className="text-[11px] font-semibold opacity-80 sm:text-sm">{message.food.time}</p>
-          <p className="truncate text-sm font-bold sm:text-base">I feed you {message.food.foodName}</p>
+          <p className="truncate text-sm font-bold sm:text-base">{feedSentence} {message.food.foodName}</p>
           <p className="text-xs opacity-90 sm:text-sm">
             {message.food.kcalMin}-{message.food.kcalMax} kcal · Score{" "}
             {message.food.biteScore}

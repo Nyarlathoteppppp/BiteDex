@@ -16,6 +16,8 @@ import { addFoodCard } from "@/lib/storage";
 import { getFallbackFood, makeMockRecognition } from "@/lib/mock/foods";
 import { makeMockFoodCard } from "@/lib/mock/cards";
 import { getLocalDateKey, getLocalTimeKey } from "@/lib/utils/dates";
+import { localizeMealType, useLanguage } from "@/lib/i18n";
+import { LanguageToggle } from "@/app/components/language-toggle";
 
 type AnalyzeMode = "mock" | "ai";
 
@@ -30,6 +32,7 @@ type RecognizeApiResponse =
     };
 
 export default function CapturePage() {
+  const { language, setLanguage } = useLanguage("zh");
   const [mealType, setMealType] = useState<MealType>("lunch");
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
@@ -47,6 +50,43 @@ export default function CapturePage() {
     () => ["Rice Bowl", "Fried Chicken", "Milk Tea", "Salad", "Chocolate Cake"],
     [],
   );
+  const text = language === "zh"
+    ? {
+        title: "拍摄食物",
+        upload: "上传图片",
+        choosePhoto: "选择食物照片",
+        mealType: "餐别",
+        desc: "你吃了什么？",
+        descHint: "可选，帮助 AI 更准确估算份量。",
+        mock: "模拟",
+        ai: "AI 分析",
+        preparing: "准备中",
+        save: "保存到图鉴",
+        saved: "已加入图鉴 ✓",
+        fallback: "兜底模板",
+        resultHint: "上传食物照片并运行 AI 分析来生成卡片。",
+        backHome: "首页",
+        pet: "宠物",
+        dex: "图鉴",
+      }
+    : {
+        title: "Capture Food",
+        upload: "Upload",
+        choosePhoto: "Choose a food photo",
+        mealType: "Meal type",
+        desc: "What did you eat?",
+        descHint: "Optional. Helps AI estimate portion more accurately.",
+        mock: "Mock",
+        ai: "AI",
+        preparing: "Preparing",
+        save: "Save to Dex",
+        saved: "Added to Food Dex ✓",
+        fallback: "Fallback templates",
+        resultHint: "Upload a food photo and run AI analysis to generate your card.",
+        backHome: "Home",
+        pet: "Pet",
+        dex: "Dex",
+      };
 
   async function handleFileChange(nextFile: File | null) {
     setFile(null);
@@ -167,12 +207,15 @@ export default function CapturePage() {
           >
             <ArrowLeft size={18} />
           </Link>
-          <h1 className="text-2xl font-bold sm:text-3xl">Capture Food</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">{text.title}</h1>
+          <div className="ml-auto">
+            <LanguageToggle language={language} onChange={setLanguage} />
+          </div>
         </header>
 
         <section className="grid gap-4 sm:gap-5 lg:grid-cols-[0.95fr_1.05fr]">
           <div className="rounded-lg border border-[#eadbc7] bg-white p-4 shadow-sm sm:p-5">
-            <h2 className="text-lg font-bold sm:text-xl">Upload</h2>
+            <h2 className="text-lg font-bold sm:text-xl">{text.upload}</h2>
 
             <label className="mt-3 flex aspect-[4/3] cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-[#d5c2aa] bg-[#f8efe3] text-center sm:mt-4">
               {previewUrl ? (
@@ -185,7 +228,7 @@ export default function CapturePage() {
               ) : (
                 <div className="flex flex-col items-center gap-2 text-[#766b60] sm:gap-3">
                   <Camera size={32} />
-                  <span className="text-sm font-semibold">Choose a food photo</span>
+                  <span className="text-sm font-semibold">{text.choosePhoto}</span>
                 </div>
               )}
               <input
@@ -197,7 +240,7 @@ export default function CapturePage() {
             </label>
 
             <div className="mt-4 sm:mt-5">
-              <label className="text-xs font-semibold text-[#766b60] sm:text-sm">Meal type</label>
+              <label className="text-xs font-semibold text-[#766b60] sm:text-sm">{text.mealType}</label>
               <div className="mt-2 grid grid-cols-3 gap-1.5 sm:gap-2">
                 {mealTypes.map((type) => (
                   <button
@@ -210,7 +253,7 @@ export default function CapturePage() {
                         : "border-[#e4d3be] bg-white"
                     }`}
                   >
-                    {type}
+                    {localizeMealType(type, language)}
                   </button>
                 ))}
               </div>
@@ -221,7 +264,7 @@ export default function CapturePage() {
                 htmlFor="food-description"
                 className="text-xs font-semibold text-[#766b60] sm:text-sm"
               >
-                What did you eat?
+                {text.desc}
               </label>
               <textarea
                 id="food-description"
@@ -229,11 +272,11 @@ export default function CapturePage() {
                 onChange={(event) => setFoodDescription(event.target.value)}
                 rows={2}
                 maxLength={300}
-                placeholder="e.g. half bowl of rice, two pieces of fried chicken"
+                placeholder={language === "zh" ? "例如：半碗米饭、两块炸鸡" : "e.g. half bowl of rice, two pieces of fried chicken"}
                 className="mt-2 w-full resize-none rounded-lg border border-[#e4d3be] bg-white px-3 py-2.5 text-sm leading-6 outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#d9f3ea]"
               />
               <p className="mt-1 text-[11px] font-medium text-[#85786c] sm:text-xs">
-                Optional. Helps AI estimate portion more accurately.
+                {text.descHint}
               </p>
             </div>
 
@@ -245,7 +288,7 @@ export default function CapturePage() {
                 className="inline-flex touch-manipulation items-center justify-center gap-1.5 rounded-lg border border-[#e4d3be] bg-white px-3 py-3 text-xs font-bold active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-4 sm:text-sm"
               >
                 <FlaskConical size={16} />
-                {isPreparingImage ? "Preparing" : "Mock"}
+                {isPreparingImage ? text.preparing : text.mock}
               </button>
               <button
                 type="button"
@@ -254,14 +297,14 @@ export default function CapturePage() {
                 className="inline-flex touch-manipulation items-center justify-center gap-1.5 rounded-lg bg-[#0f766e] px-3 py-3 text-xs font-bold text-white active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-4 sm:text-sm"
               >
                 <Sparkles size={16} />
-                {isAnalyzing ? "Analyzing" : "AI"}
+                {isAnalyzing ? (language === "zh" ? "分析中" : "Analyzing") : text.ai}
               </button>
             </div>
 
             {status ? <p className="mt-3 text-xs font-medium text-[#665f56] sm:mt-4 sm:text-sm">{status}</p> : null}
 
             <div className="mt-4 sm:mt-5">
-              <p className="text-xs font-semibold text-[#766b60] sm:text-sm">Fallback templates</p>
+              <p className="text-xs font-semibold text-[#766b60] sm:text-sm">{text.fallback}</p>
               <div className="mt-2 flex flex-wrap gap-1.5 sm:gap-2">
                 {fallbackOptions.map((name) => (
                   <button
@@ -335,7 +378,7 @@ export default function CapturePage() {
                   disabled={saved}
                   className="w-full touch-manipulation rounded-full bg-[#1f1b16] px-4 py-4 text-sm font-bold text-white active:scale-[0.98] disabled:bg-[#9b856d] sm:py-3"
                 >
-                  {saved ? "Added to Food Dex ✓" : "Save to Dex"}
+                  {saved ? text.saved : text.save}
                 </button>
 
                 {saved ? (
@@ -344,21 +387,21 @@ export default function CapturePage() {
                       href="/"
                       className="inline-flex items-center justify-center rounded-full border border-[rgba(70,50,30,0.12)] bg-white px-3 py-2.5 text-xs font-semibold text-[#1f1b16]"
                     >
-                      Home
+                      {text.backHome}
                     </Link>
                     <Link
                       href="/pet"
                       className="inline-flex items-center justify-center gap-1.5 rounded-full border border-[rgba(70,50,30,0.12)] bg-white px-3 py-2.5 text-xs font-semibold text-[#1f1b16]"
                     >
                       <MessageCircle size={14} />
-                      Pet
+                      {text.pet}
                     </Link>
                     <Link
                       href="/dex"
                       className="inline-flex items-center justify-center gap-1.5 rounded-full border border-[rgba(70,50,30,0.12)] bg-white px-3 py-2.5 text-xs font-semibold text-[#1f1b16]"
                     >
                       <LibraryBig size={14} />
-                      Dex
+                      {text.dex}
                     </Link>
                   </div>
                 ) : null}
@@ -367,7 +410,7 @@ export default function CapturePage() {
               <div className="flex w-full max-w-[360px] flex-col items-center justify-center rounded-[32px] border border-[rgba(70,50,30,0.08)] bg-[rgba(255,253,248,0.96)] p-10 text-center shadow-[0_24px_70px_rgba(70,50,30,0.06)]">
                 <Camera size={32} className="text-[#9b856d]" />
                 <p className="mt-4 text-sm leading-6 text-[#9b856d]">
-                  Upload a food photo and run AI analysis to generate your card.
+                  {text.resultHint}
                 </p>
               </div>
             )}
