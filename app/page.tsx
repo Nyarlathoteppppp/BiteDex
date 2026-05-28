@@ -21,7 +21,7 @@ export default function Home() {
 
   if (!todayLog) {
     return (
-      <main className="min-h-screen bg-[#fffaf3] px-5 py-6 text-[#231f20]">
+      <main className="min-h-screen bg-[#fffaf3] px-4 py-5 text-[#231f20]">
         <div className="mx-auto max-w-6xl rounded-lg border border-[#eadbc7] bg-white p-5 shadow-sm">
           Loading BiteDex...
         </div>
@@ -42,81 +42,81 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#fffaf3] text-[#231f20]">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-6 sm:px-8 lg:px-10">
-        <header className="flex flex-col gap-4 border-b border-[#eadbc7] pb-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-5 sm:gap-8 sm:px-8 sm:py-6 lg:px-10">
+        <header className="flex flex-col gap-3 border-b border-[#eadbc7] pb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:pb-5">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wider text-[#0f766e]">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#0f766e] sm:text-sm">
               BiteDex MVP
             </p>
-            <h1 className="mt-1 text-3xl font-bold tracking-normal">一口图鉴</h1>
+            <h1 className="mt-0.5 text-2xl font-bold tracking-normal sm:mt-1 sm:text-3xl">一口图鉴</h1>
           </div>
 
-          <nav className="flex flex-wrap gap-2">
+          <nav className="grid grid-cols-4 gap-2 sm:flex sm:flex-wrap">
             <Link
               href="/capture"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#0f766e] px-4 py-2 text-sm font-semibold text-white shadow-sm"
+              className="inline-flex flex-col items-center gap-1 rounded-lg bg-[#0f766e] px-3 py-2 text-xs font-semibold text-white shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
             >
               <Camera size={18} />
-              Upload
+              <span>Upload</span>
             </Link>
             <Link
               href="/dex"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#e4d3be] bg-white px-4 py-2 text-sm font-semibold"
+              className="inline-flex flex-col items-center gap-1 rounded-lg border border-[#e4d3be] bg-white px-3 py-2 text-xs font-semibold sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
             >
               <LibraryBig size={18} />
-              Dex
+              <span>Dex</span>
             </Link>
             <Link
               href="/pet"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#e4d3be] bg-white px-4 py-2 text-sm font-semibold"
+              className="inline-flex flex-col items-center gap-1 rounded-lg border border-[#e4d3be] bg-white px-3 py-2 text-xs font-semibold sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
             >
               <MessageCircle size={18} />
-              Pet
+              <span>Pet</span>
             </Link>
             <Link
               href="/analysis"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#e4d3be] bg-white px-4 py-2 text-sm font-semibold"
+              className="inline-flex flex-col items-center gap-1 rounded-lg border border-[#e4d3be] bg-white px-3 py-2 text-xs font-semibold sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
             >
               <ChartNoAxesCombined size={18} />
-              Analysis
+              <span>Analysis</span>
             </Link>
           </nav>
         </header>
 
-        <section className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+        <section className="grid gap-4 sm:gap-5 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="overflow-hidden rounded-lg border border-[#eadbc7] bg-white shadow-sm">
             <div className="grid gap-0 sm:grid-cols-[250px_1fr]">
-              <div className="flex min-h-[270px] flex-col items-center justify-center bg-[#d9f3ea] p-5">
+              <div className="flex min-h-[200px] flex-col items-center justify-center bg-[#d9f3ea] p-4 sm:min-h-[270px] sm:p-5">
                 <PetImage src={petState.imageUrl} title={petState.title} />
-                <p className="mt-3 rounded-lg bg-white px-3 py-2 text-sm font-bold text-[#0f766e] shadow-sm">
+                <p className="mt-2 rounded-lg bg-white px-3 py-1.5 text-sm font-bold text-[#0f766e] shadow-sm sm:mt-3 sm:py-2">
                   {petState.title}
                 </p>
               </div>
-              <div className="p-5">
-                <p className="text-sm font-semibold uppercase tracking-wider text-[#0f766e]">
+              <div className="p-4 sm:p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[#0f766e] sm:text-sm">
                   Feeding Pet
                 </p>
-                <h2 className="mt-2 text-3xl font-bold">
+                <h2 className="mt-1.5 text-xl font-bold sm:mt-2 sm:text-3xl">
                   {latestFood ? `Fed: ${latestFood.foodName}` : "Waiting for food"}
                 </h2>
-                <p className="mt-3 text-lg font-semibold leading-8 text-[#3b3430]">
+                <p className="mt-2 text-base font-semibold leading-7 text-[#3b3430] sm:mt-3 sm:text-lg sm:leading-8">
                   {dialogue.message}
                 </p>
-                <p className="mt-3 rounded-lg bg-[#f8efe3] p-4 leading-7 text-[#665f56]">
+                <p className="mt-2 rounded-lg bg-[#f8efe3] p-3 text-sm leading-6 text-[#665f56] sm:mt-3 sm:p-4 sm:leading-7">
                   {dialogue.reason}
                 </p>
-                <p className="mt-3 leading-7 text-[#665f56]">
+                <p className="mt-2 text-sm leading-6 text-[#665f56] sm:mt-3 sm:leading-7">
                   {dialogue.suggestion}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-lg border border-[#eadbc7] bg-white p-5 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-wider text-[#0f766e]">
+          <div className="rounded-lg border border-[#eadbc7] bg-white p-4 shadow-sm sm:p-5">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#0f766e] sm:text-sm">
               Today Summary
             </p>
-            <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3">
               <Metric label="Records" value={String(total.records)} />
               <Metric
                 label="Calories"
@@ -131,10 +131,10 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-lg border border-[#eadbc7] bg-white p-5 shadow-sm">
-            <h2 className="text-xl font-bold">Today Highlights</h2>
-            <div className="mt-4 space-y-3">
+        <section className="grid gap-4 sm:gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="rounded-lg border border-[#eadbc7] bg-white p-4 shadow-sm sm:p-5">
+            <h2 className="text-lg font-bold sm:text-xl">Today Highlights</h2>
+            <div className="mt-3 space-y-2 sm:mt-4 sm:space-y-3">
               <Highlight
                 label="Highest Calorie"
                 name={highlights.highestCalorie?.foodName}
@@ -165,39 +165,40 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-[#eadbc7] bg-white p-5 shadow-sm">
-            <h2 className="text-xl font-bold">Today Timeline</h2>
-            <div className="mt-4 divide-y divide-[#f0e3d2]">
+          <div className="rounded-lg border border-[#eadbc7] bg-white p-4 shadow-sm sm:p-5">
+            <h2 className="text-lg font-bold sm:text-xl">Today Timeline</h2>
+            <div className="mt-3 divide-y divide-[#f0e3d2] sm:mt-4">
               {foods.length === 0 ? (
-                <div className="rounded-lg bg-[#f8efe3] p-5 text-[#766b60]">
+                <div className="rounded-lg bg-[#f8efe3] p-4 text-sm text-[#766b60] sm:p-5">
                   No food cards yet. Upload a photo to start today&apos;s log.
                 </div>
               ) : (
                 foods.map((food) => (
                   <div
                     key={food.id}
-                    className="grid grid-cols-[50px_58px_1fr_auto_auto] items-center gap-3 py-3"
+                    className="flex items-center gap-2 py-2.5 sm:grid sm:grid-cols-[50px_58px_1fr_auto_auto] sm:gap-3 sm:py-3"
                   >
-                    <div className="text-sm font-semibold text-[#85786c]">
+                    <div className="hidden text-sm font-semibold text-[#85786c] sm:block">
                       {food.time}
                     </div>
                     <FoodThumb src={food.imageUrl} name={food.foodName} />
-                    <div>
-                      <p className="font-semibold">{food.foodName}</p>
-                      <p className="mt-1 text-sm text-[#766b60]">
-                        {food.portion} · {food.mealType} · {food.rarity}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-semibold text-sm sm:text-base">{food.foodName}</p>
+                      <p className="mt-0.5 text-xs text-[#766b60] sm:text-sm">
+                        <span className="sm:hidden">{food.time} · </span>
+                        {food.portion} · {food.rarity}
                       </p>
                     </div>
-                    <div className="text-right text-sm font-semibold">
-                      {food.kcalMin}-{food.kcalMax} kcal
+                    <div className="shrink-0 text-right text-xs font-semibold text-[#0f766e] sm:text-sm">
+                      {food.kcalMin}-{food.kcalMax}
                     </div>
                     <button
                       type="button"
                       aria-label={`Delete ${food.foodName}`}
                       onClick={() => handleDelete(food.id)}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#e4d3be] bg-white text-[#766b60]"
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#e4d3be] bg-white text-[#766b60] sm:h-9 sm:w-9"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 ))
@@ -220,11 +221,11 @@ function Metric({
   unit?: string;
 }) {
   return (
-    <div className="rounded-lg bg-[#f8efe3] p-4">
-      <p className="text-sm font-medium text-[#766b60]">{label}</p>
-      <p className="mt-1 text-2xl font-bold">
+    <div className="rounded-lg bg-[#f8efe3] p-3 sm:p-4">
+      <p className="text-xs font-medium text-[#766b60] sm:text-sm">{label}</p>
+      <p className="mt-0.5 text-lg font-bold sm:mt-1 sm:text-2xl">
         {value}
-        {unit ? <span className="ml-1 text-sm font-semibold">{unit}</span> : null}
+        {unit ? <span className="ml-1 text-xs font-semibold sm:text-sm">{unit}</span> : null}
       </p>
     </div>
   );
@@ -232,7 +233,7 @@ function Metric({
 
 function PetImage({ src, title }: { src: string; title: string }) {
   return (
-    <div className="flex aspect-square w-full max-w-[210px] items-center justify-center rounded-lg bg-white/70 p-3 shadow-sm">
+    <div className="flex aspect-square w-full max-w-[160px] items-center justify-center rounded-lg bg-white/70 p-2 shadow-sm sm:max-w-[210px] sm:p-3">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
@@ -253,12 +254,12 @@ function PetImage({ src, title }: { src: string; title: string }) {
 function FoodThumb({ src, name }: { src: string; name: string }) {
   if (!src) {
     return (
-      <div className="h-12 w-12 rounded-lg bg-[#f8efe3]" aria-label={name} />
+      <div className="h-10 w-10 shrink-0 rounded-lg bg-[#f8efe3] sm:h-12 sm:w-12" aria-label={name} />
     );
   }
 
   return (
-    <div className="h-12 w-12 overflow-hidden rounded-lg bg-[#f8efe3]">
+    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-[#f8efe3] sm:h-12 sm:w-12">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt={name} className="h-full w-full object-cover" />
     </div>
@@ -275,11 +276,11 @@ function Highlight({
   value: string;
 }) {
   return (
-    <div className="rounded-lg bg-[#f8efe3] p-4">
-      <p className="text-sm font-medium text-[#766b60]">{label}</p>
-      <div className="mt-1 flex items-center justify-between gap-3">
-        <p className="font-semibold">{name ?? "None"}</p>
-        <p className="text-sm font-semibold text-[#0f766e]">{value}</p>
+    <div className="rounded-lg bg-[#f8efe3] p-3 sm:p-4">
+      <p className="text-xs font-medium text-[#766b60] sm:text-sm">{label}</p>
+      <div className="mt-1 flex items-center justify-between gap-2">
+        <p className="truncate text-sm font-semibold sm:text-base">{name ?? "None"}</p>
+        <p className="shrink-0 text-xs font-semibold text-[#0f766e] sm:text-sm">{value}</p>
       </div>
     </div>
   );
