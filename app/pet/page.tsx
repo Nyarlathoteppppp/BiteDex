@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Camera, Loader2, MessageCircle, PackageOpen, Send } from "lucide-react";
 import type { DailyLog, FoodCard, PetDialogue, PetState } from "@/types";
 import {
@@ -16,6 +16,7 @@ type PetMessage = {
   petState: PetState;
   dialogue: PetDialogue;
   kcalRange: string;
+  isAiLoading?: boolean;
 };
 
 type ChatMessage = {
@@ -26,6 +27,7 @@ type ChatMessage = {
 
 export default function PetPage() {
   const [todayLog, setTodayLog] = useState<DailyLog | null>(null);
+  const [feedingMessages, setFeedingMessages] = useState<PetMessage[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -39,12 +41,13 @@ export default function PetPage() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
-  const feedingMessages = useMemo(() => {
-    if (!todayLog) {
-      return [];
+  useEffect(() => {
+    if (!todayLog || todayLog.foods.length === 0) {
+      setFeedingMessages([]);
+      return;
     }
 
-    return todayLog.foods.map<PetMessage>((food, index) => {
+    const localMessages = todayLog.foods.map<PetMessage>((food, index) => {
       const foodsSoFar = todayLog.foods.slice(0, index + 1);
       const petState = computePetState(foodsSoFar);
       const dialogue = generatePetDialogue(petState, foodsSoFar);
@@ -55,7 +58,33 @@ export default function PetPage() {
         petState,
         dialogue,
         kcalRange: `${total.kcalMin}-${total.kcalMax} kcal`,
+        isAiLoading: true,
       };
+    });
+
+    setFeedingMessages(localMessages);
+
+    localMessages.forEach((msg, index) => {
+      const foodsSoFar = todayLog.foods.slice(0, index + 1);
+      const previousFoodNames = foodsSoFar.slice(0, -1).map((f) => f.foodName);
+
+      fetchFeedingReview(msg.food, msg.petState, calculateDailyTotal(foodsSoFar), previousFoodNames)
+        .then((aiDialogue) => {
+          setFeedingMessages((prev) =>
+            prev.map((m) =>
+              m.food.id === msg.food.id
+                ? { ...m, dialogue: aiDialogue, isAiLoading: false }
+                : m,
+            ),
+          );
+        })
+        .catch(() => {
+          setFeedingMessages((prev) =>
+            prev.map((m) =>
+              m.food.id === msg.food.id ? { ...m, isAiLoading: false } : m,
+            ),
+          );
+        });
     });
   }, [todayLog]);
 
@@ -315,9 +344,14 @@ function FeedingTurn({ message }: { message: PetMessage }) {
             <p className="text-[11px] font-bold uppercase tracking-wider text-[#0f766e] sm:text-sm">
               {message.petState.title}
             </p>
-            <p className="text-[11px] font-semibold text-[#766b60] sm:text-sm">
-              {message.kcalRange}
-            </p>
+            <div className="flex items-center gap-2">
+              {message.isAiLoading && (
+                <Loader2 size={12} className="animate-spin text-[#0f766e]" />
+              )}
+              <p className="text-[11px] font-semibold text-[#766b60] sm:text-sm">
+                {message.kcalRange}
+              </p>
+            </div>
           </div>
           <p className="mt-1.5 text-sm font-bold leading-6 sm:mt-2 sm:text-lg sm:leading-8">
             {message.dialogue.message}
@@ -382,4 +416,46 @@ function MiniMetric({ label, value }: { label: string; value: number | string })
       <p className="mt-0.5 text-base font-bold sm:mt-1 sm:text-2xl">{value}</p>
     </div>
   );
+}
+
+async function fetchFeedingReview(
+  food: FoodCard,
+  petState: PetState,
+  todayTotal: { records: number; kcalMin: number; kcalMax: number; protein: number; carbs: number; fat: number },
+  previousFoods: string[],
+): Promise<PetDialogue> {
+  const response = await fetch("/api/feeding-review", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      food: {
+        foodName: food.foodName,
+        kcalMin: food.kcalMin,
+        kcalMax: food.kcalMax,
+        protein: food.protein,
+        carbs: food.carbs,
+        fat: food.fat,
+        tags: food.tags,
+        mealType: food.mealType,
+        portion: food.portion,
+        biteScore: food.biteScore,
+      },
+      petState,
+      todayTotal,
+      previousFoods,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!data.success) {
+    throw new Error(data.error || "Failed");
+  }
+
+  return {
+    title: "Pet Review",
+    message: data.data.message,
+    reason: data.data.reason,
+    suggestion: data.data.suggestion,
+  };
 }
