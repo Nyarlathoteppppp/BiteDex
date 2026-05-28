@@ -12,9 +12,13 @@ import {
 } from "lucide-react";
 import type { DailyLog } from "@/types";
 import { deleteFoodCard, getTodayLog } from "@/lib/storage";
+import { buildDailyLog } from "@/lib/nutrition";
+import { localizeMealType, useLanguage } from "@/lib/i18n";
+import { LanguageToggle } from "@/app/components/language-toggle";
 
 export default function Home() {
   const [todayLog, setTodayLog] = useState<DailyLog | null>(null);
+  const { language, setLanguage } = useLanguage("zh");
 
   useEffect(() => {
     setTodayLog(getTodayLog());
@@ -24,14 +28,73 @@ export default function Home() {
     return (
       <main className="min-h-screen bg-[#fffaf3] px-4 py-5 text-[#231f20]">
         <div className="mx-auto max-w-6xl rounded-lg border border-[#eadbc7] bg-white p-5 shadow-sm">
-          Loading BiteDex...
+          {language === "zh" ? "BiteDex 加载中..." : "Loading BiteDex..."}
         </div>
       </main>
     );
   }
 
-  const { total, petState, dialogue, highlights, foods } = todayLog;
+  const displayLog = buildDailyLog(todayLog.date, todayLog.foods, language);
+  const { total, petState, dialogue, highlights, foods } = displayLog;
   const latestFood = foods[foods.length - 1];
+  const text =
+    language === "zh"
+      ? {
+          loading: "BiteDex 加载中...",
+          title: "一口图鉴",
+          upload: "拍照",
+          dex: "图鉴",
+          pet: "宠物",
+          box: "仓库",
+          analysis: "分析",
+          feeding: "喂养状态",
+          waiting: "等待投喂",
+          fed: "刚刚投喂",
+          today: "今日总览",
+          records: "记录数",
+          calories: "热量",
+          protein: "蛋白质",
+          carbs: "碳水",
+          fat: "脂肪",
+          state: "状态",
+          highlights: "今日亮点",
+          highestCal: "最高热量",
+          highestProtein: "最高蛋白",
+          assassin: "热量刺客",
+          noData: "暂无",
+          timeline: "今日时间线",
+          noCards: "今天还没有食物卡，拍一张开始记录吧。",
+          del: "删除",
+          none: "无",
+        }
+      : {
+          loading: "Loading BiteDex...",
+          title: "BiteDex",
+          upload: "Upload",
+          dex: "Dex",
+          pet: "Pet",
+          box: "Box",
+          analysis: "Analysis",
+          feeding: "Feeding Pet",
+          waiting: "Waiting for food",
+          fed: "Fed",
+          today: "Today Summary",
+          records: "Records",
+          calories: "Calories",
+          protein: "Protein",
+          carbs: "Carbs",
+          fat: "Fat",
+          state: "State",
+          highlights: "Today Highlights",
+          highestCal: "Highest Calorie",
+          highestProtein: "Highest Protein",
+          assassin: "Calorie Assassin",
+          noData: "No data",
+          timeline: "Today Timeline",
+          noCards: "No food cards yet. Upload a photo to start today's log.",
+          del: "Delete",
+          none: "None",
+        };
 
   function handleDelete(foodId: string) {
     if (!todayLog) {
@@ -49,46 +112,48 @@ export default function Home() {
             <p className="text-xs font-semibold uppercase tracking-wider text-[#0f766e] sm:text-sm">
               BiteDex MVP
             </p>
-            <h1 className="mt-0.5 text-2xl font-bold tracking-normal sm:mt-1 sm:text-3xl">一口图鉴</h1>
+            <h1 className="mt-0.5 text-2xl font-bold tracking-normal sm:mt-1 sm:text-3xl">{text.title}</h1>
           </div>
-
+          <div className="flex items-center gap-2">
           <nav className="grid grid-cols-5 gap-2 sm:flex sm:flex-wrap">
             <Link
               href="/capture"
               className="inline-flex flex-col items-center gap-1 rounded-lg bg-[#0f766e] px-3 py-2 text-xs font-semibold text-white shadow-sm sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
             >
               <Camera size={18} />
-              <span>Upload</span>
+              <span>{text.upload}</span>
             </Link>
             <Link
               href="/dex"
               className="inline-flex flex-col items-center gap-1 rounded-lg border border-[#e4d3be] bg-white px-3 py-2 text-xs font-semibold sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
             >
               <LibraryBig size={18} />
-              <span>Dex</span>
+              <span>{text.dex}</span>
             </Link>
             <Link
               href="/pet"
               className="inline-flex flex-col items-center gap-1 rounded-lg border border-[#e4d3be] bg-white px-3 py-2 text-xs font-semibold sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
             >
               <MessageCircle size={18} />
-              <span>Pet</span>
+              <span>{text.pet}</span>
             </Link>
             <Link
               href="/pet-warehouse"
               className="inline-flex flex-col items-center gap-1 rounded-lg border border-[#e4d3be] bg-white px-3 py-2 text-xs font-semibold sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
             >
               <PackageOpen size={18} />
-              <span>Box</span>
+              <span>{text.box}</span>
             </Link>
             <Link
               href="/analysis"
               className="inline-flex flex-col items-center gap-1 rounded-lg border border-[#e4d3be] bg-white px-3 py-2 text-xs font-semibold sm:flex-row sm:gap-2 sm:px-4 sm:text-sm"
             >
               <ChartNoAxesCombined size={18} />
-              <span>Analysis</span>
+              <span>{text.analysis}</span>
             </Link>
           </nav>
+            <LanguageToggle language={language} onChange={setLanguage} />
+          </div>
         </header>
 
         <section className="grid gap-4 sm:gap-5 lg:grid-cols-[1.1fr_0.9fr]">
@@ -102,10 +167,10 @@ export default function Home() {
               </div>
               <div className="p-4 sm:p-5">
                 <p className="text-xs font-semibold uppercase tracking-wider text-[#0f766e] sm:text-sm">
-                  Feeding Pet
+                  {text.feeding}
                 </p>
                 <h2 className="mt-1.5 text-xl font-bold sm:mt-2 sm:text-3xl">
-                  {latestFood ? `Fed: ${latestFood.foodName}` : "Waiting for food"}
+                  {latestFood ? `${text.fed}: ${latestFood.foodName}` : text.waiting}
                 </h2>
                 <p className="mt-2 text-base font-semibold leading-7 text-[#3b3430] sm:mt-3 sm:text-lg sm:leading-8">
                   {dialogue.message}
@@ -122,63 +187,66 @@ export default function Home() {
 
           <div className="rounded-lg border border-[#eadbc7] bg-white p-4 shadow-sm sm:p-5">
             <p className="text-xs font-semibold uppercase tracking-wider text-[#0f766e] sm:text-sm">
-              Today Summary
+              {text.today}
             </p>
             <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3">
-              <Metric label="Records" value={String(total.records)} />
+              <Metric label={text.records} value={String(total.records)} />
               <Metric
-                label="Calories"
+                label={text.calories}
                 value={`${total.kcalMin}-${total.kcalMax}`}
                 unit="kcal"
               />
-              <Metric label="Protein" value={String(total.protein)} unit="g" />
-              <Metric label="Carbs" value={String(total.carbs)} unit="g" />
-              <Metric label="Fat" value={String(total.fat)} unit="g" />
-              <Metric label="State" value={petState.title} />
+              <Metric label={text.protein} value={String(total.protein)} unit="g" />
+              <Metric label={text.carbs} value={String(total.carbs)} unit="g" />
+              <Metric label={text.fat} value={String(total.fat)} unit="g" />
+              <Metric label={text.state} value={petState.title} />
             </div>
           </div>
         </section>
 
         <section className="grid gap-4 sm:gap-5 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="rounded-lg border border-[#eadbc7] bg-white p-4 shadow-sm sm:p-5">
-            <h2 className="text-lg font-bold sm:text-xl">Today Highlights</h2>
+            <h2 className="text-lg font-bold sm:text-xl">{text.highlights}</h2>
             <div className="mt-3 space-y-2 sm:mt-4 sm:space-y-3">
               <Highlight
-                label="Highest Calorie"
+                label={text.highestCal}
                 name={highlights.highestCalorie?.foodName}
+                noneLabel={text.none}
                 value={
                   highlights.highestCalorie
                     ? `${highlights.highestCalorie.kcalMin}-${highlights.highestCalorie.kcalMax} kcal`
-                    : "No data"
+                    : text.noData
                 }
               />
               <Highlight
-                label="Highest Protein"
+                label={text.highestProtein}
                 name={highlights.highestProtein?.foodName}
+                noneLabel={text.none}
                 value={
                   highlights.highestProtein
                     ? `${highlights.highestProtein.protein}g protein`
-                    : "No data"
+                    : text.noData
                 }
               />
               <Highlight
-                label="Calorie Assassin"
+                label={text.assassin}
                 name={highlights.calorieAssassin?.foodName}
+                noneLabel={text.none}
                 value={
                   highlights.calorieAssassin
                     ? `${highlights.calorieAssassin.kcalMax} kcal max`
-                    : "No data"
+                    : text.noData
                 }
               />
             </div>
           </div>
 
           <div className="rounded-lg border border-[#eadbc7] bg-white p-4 shadow-sm sm:p-5">
-            <h2 className="text-lg font-bold sm:text-xl">Today Timeline</h2>
+            <h2 className="text-lg font-bold sm:text-xl">{text.timeline}</h2>
             <div className="mt-3 divide-y divide-[#f0e3d2] sm:mt-4">
               {foods.length === 0 ? (
                 <div className="rounded-lg bg-[#f8efe3] p-4 text-sm text-[#766b60] sm:p-5">
-                  No food cards yet. Upload a photo to start today&apos;s log.
+                  {text.noCards}
                 </div>
               ) : (
                 foods.map((food) => (
@@ -194,7 +262,7 @@ export default function Home() {
                       <p className="truncate font-semibold text-sm sm:text-base">{food.foodName}</p>
                       <p className="mt-0.5 text-xs text-[#766b60] sm:text-sm">
                         <span className="sm:hidden">{food.time} · </span>
-                        {food.portion} · {food.rarity}
+                        {food.portion} · {localizeMealType(food.mealType, language)} · {food.rarity}
                       </p>
                     </div>
                     <div className="shrink-0 text-right text-xs font-semibold text-[#0f766e] sm:text-sm">
@@ -202,7 +270,7 @@ export default function Home() {
                     </div>
                     <button
                       type="button"
-                      aria-label={`Delete ${food.foodName}`}
+                      aria-label={`${text.del} ${food.foodName}`}
                       onClick={() => handleDelete(food.id)}
                       className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#e4d3be] bg-white text-[#766b60] sm:h-9 sm:w-9"
                     >
@@ -278,16 +346,18 @@ function Highlight({
   label,
   name,
   value,
+  noneLabel = "None",
 }: {
   label: string;
   name?: string;
   value: string;
+  noneLabel?: string;
 }) {
   return (
     <div className="rounded-lg bg-[#f8efe3] p-3 sm:p-4">
       <p className="text-xs font-medium text-[#766b60] sm:text-sm">{label}</p>
       <div className="mt-1 flex items-center justify-between gap-2">
-        <p className="truncate text-sm font-semibold sm:text-base">{name ?? "None"}</p>
+        <p className="truncate text-sm font-semibold sm:text-base">{name ?? noneLabel}</p>
         <p className="shrink-0 text-xs font-semibold text-[#0f766e] sm:text-sm">{value}</p>
       </div>
     </div>

@@ -5,9 +5,12 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Camera, LibraryBig } from "lucide-react";
 import type { DexItem } from "@/types";
 import { getDex } from "@/lib/storage";
+import { useLanguage } from "@/lib/i18n";
+import { LanguageToggle } from "@/app/components/language-toggle";
 
 export default function DexPage() {
   const [items, setItems] = useState<DexItem[]>([]);
+  const { language, setLanguage } = useLanguage("zh");
 
   useEffect(() => {
     setItems(Object.values(getDex()));
@@ -23,6 +26,23 @@ export default function DexPage() {
       }),
     [items],
   );
+  const text = language === "zh"
+    ? {
+        dashboard: "首页",
+        title: "食物图鉴",
+        subtitle: "把每一口变成可收藏卡片。",
+        capture: "拍照",
+        emptyTitle: "还没有卡片",
+        emptyDesc: "先拍第一张食物照片，图鉴就会开始积累。",
+      }
+    : {
+        dashboard: "Dashboard",
+        title: "Food Dex",
+        subtitle: "Turn every bite into a card.",
+        capture: "Capture",
+        emptyTitle: "No cards yet",
+        emptyDesc: "Capture your first food photo to start collecting cards in your Food Dex.",
+      };
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.9),transparent_42%),linear-gradient(180deg,#fbf6ee_0%,#f5ecdf_100%)]">
@@ -34,27 +54,30 @@ export default function DexPage() {
               className="inline-flex items-center gap-2 text-sm font-medium text-[#9b856d]"
             >
               <ArrowLeft size={16} />
-              Dashboard
+              {text.dashboard}
             </Link>
-            <h1 className="mt-2 text-2xl font-bold tracking-tight text-[#1f1b16] sm:text-3xl">Food Dex</h1>
-            <p className="mt-1 text-sm text-[#9b856d]">Turn every bite into a card.</p>
+            <h1 className="mt-2 text-2xl font-bold tracking-tight text-[#1f1b16] sm:text-3xl">{text.title}</h1>
+            <p className="mt-1 text-sm text-[#9b856d]">{text.subtitle}</p>
           </div>
 
-          <Link
-            href="/capture"
-            className="inline-flex items-center gap-2 rounded-full bg-[#1f1b16] px-4 py-2 text-xs font-semibold text-white shadow-sm sm:text-sm"
-          >
-            <Camera size={15} />
-            Capture
-          </Link>
+          <div className="flex items-center gap-2">
+            <LanguageToggle language={language} onChange={setLanguage} />
+            <Link
+              href="/capture"
+              className="inline-flex items-center gap-2 rounded-full bg-[#1f1b16] px-4 py-2 text-xs font-semibold text-white shadow-sm sm:text-sm"
+            >
+              <Camera size={15} />
+              {text.capture}
+            </Link>
+          </div>
         </header>
 
         {sortedItems.length === 0 ? (
           <section className="flex min-h-[300px] flex-col items-center justify-center rounded-[32px] border border-[rgba(70,50,30,0.08)] bg-[rgba(255,253,248,0.96)] p-8 text-center shadow-[0_24px_70px_rgba(70,50,30,0.10)]">
             <LibraryBig size={36} className="text-[#9b856d]" />
-            <h2 className="mt-4 text-xl font-bold text-[#1f1b16]">No cards yet</h2>
+            <h2 className="mt-4 text-xl font-bold text-[#1f1b16]">{text.emptyTitle}</h2>
             <p className="mt-2 max-w-sm text-sm leading-6 text-[#9b856d]">
-              Capture your first food photo to start collecting cards in your Food Dex.
+              {text.emptyDesc}
             </p>
           </section>
         ) : (
