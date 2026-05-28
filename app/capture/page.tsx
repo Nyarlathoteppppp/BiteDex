@@ -5,10 +5,9 @@ import { useMemo, useState } from "react";
 import {
   ArrowLeft,
   Camera,
-  Check,
   FlaskConical,
+  LibraryBig,
   MessageCircle,
-  PackageOpen,
   Sparkles,
 } from "lucide-react";
 import type { FoodCard, MealType, RecognizedFood } from "@/types";
@@ -269,85 +268,98 @@ export default function CapturePage() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-[#eadbc7] bg-white p-4 shadow-sm sm:p-5">
-            <h2 className="text-lg font-bold sm:text-xl">Food Card</h2>
-
+          <div className="flex items-center justify-center lg:items-start">
             {result ? (
-              <div className="mt-3 flex flex-col gap-3 sm:mt-4 sm:gap-4">
-                <div>
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-[#0f766e] sm:text-sm">
-                        {result.rarity} · Score {result.biteScore}
-                      </p>
-                      <h3 className="mt-1 text-2xl font-bold sm:text-3xl">{result.foodName}</h3>
-                    </div>
-                    <p className="rounded-lg bg-[#f8efe3] px-2.5 py-1.5 text-xs font-bold sm:px-3 sm:py-2 sm:text-sm">
-                      {result.kcalMin}-{result.kcalMax} kcal
-                    </p>
-                  </div>
-                  <p className="mt-1.5 text-sm text-[#665f56]">{result.portion}</p>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                  <Macro label="Protein" value={result.protein} />
-                  <Macro label="Carbs" value={result.carbs} />
-                  <Macro label="Fat" value={result.fat} />
-                </div>
-
-                <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                  {result.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-lg bg-[#d9f3ea] px-2 py-0.5 text-xs font-semibold text-[#0f766e] sm:px-3 sm:py-1 sm:text-sm"
-                    >
-                      {tag}
+              <div className="flex w-full max-w-[360px] flex-col gap-4">
+                {/* Cream Food Dex Card */}
+                <article className="rounded-[32px] border border-[rgba(70,50,30,0.08)] bg-[rgba(255,253,248,0.96)] p-[22px] shadow-[0_24px_70px_rgba(70,50,30,0.10),inset_0_1px_0_rgba(255,255,255,0.85)]">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[13px] text-[#a08a73]">
+                      #{stableDexNumber(result.foodName)}
                     </span>
-                  ))}
-                </div>
+                    <span className="rounded-full bg-[#f3eadc] px-3 py-1.5 text-xs font-medium text-[#7b624c]">
+                      {result.mealType}
+                    </span>
+                  </div>
 
-                <p className="rounded-lg bg-[#f8efe3] p-3 text-sm leading-6 text-[#665f56] sm:p-4 sm:leading-7">
-                  {result.advice}
-                </p>
+                  <h2 className="mt-5 text-[28px] font-bold leading-[1.05] tracking-[-0.035em] text-[#1f1b16]">
+                    {result.foodName}
+                  </h2>
+                  <p className="mt-2 text-sm text-[#9b856d]">
+                    {result.date.replace(/-/g, ".")}
+                  </p>
+
+                  <div className="my-[22px] aspect-square w-full overflow-hidden rounded-[26px] bg-[#f1e7d8] shadow-[inset_0_0_0_1px_rgba(70,50,30,0.06)]">
+                    {previewUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={previewUrl}
+                        alt={result.foodName}
+                        className="h-full w-full object-cover saturate-[0.96] contrast-[1.02]"
+                      />
+                    ) : null}
+                  </div>
+
+                  <p className="mb-[18px] text-[15px] leading-[1.65] text-[#4b4035]">
+                    {result.advice}
+                  </p>
+
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full bg-[#f7efe4] px-3 py-2 text-[13px] font-medium text-[#3b3027]">
+                      {result.kcalMin}-{result.kcalMax} kcal
+                    </span>
+                    <span className="rounded-full bg-[#f7efe4] px-3 py-2 text-[13px] font-medium text-[#3b3027]">
+                      Protein {result.protein}g
+                    </span>
+                    <span className="rounded-full bg-[#f1e4d2] px-3 py-2 text-[13px] font-medium text-[#6f563f]">
+                      Energy +{Math.round(result.kcalMax / 100)}
+                    </span>
+                    <span className="rounded-full bg-[#f1e4d2] px-3 py-2 text-[13px] font-medium text-[#6f563f]">
+                      Muscle +{Math.round(result.protein / 4)}
+                    </span>
+                  </div>
+                </article>
 
                 <button
                   type="button"
                   onClick={saveResult}
                   disabled={saved}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#231f20] px-4 py-2.5 text-sm font-bold text-white disabled:cursor-default disabled:bg-[#7b746b] sm:py-3"
+                  className="w-full rounded-full bg-[#1f1b16] px-4 py-3 text-sm font-bold text-white disabled:bg-[#9b856d]"
                 >
-                  <Check size={18} />
-                  {saved ? "Added" : "Add to Today"}
+                  {saved ? "Added to Food Dex" : "Save to Dex"}
                 </button>
 
                 {saved ? (
-                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                  <div className="grid grid-cols-3 gap-2">
                     <Link
                       href="/"
-                      className="inline-flex items-center justify-center rounded-lg border border-[#e4d3be] bg-white px-3 py-2.5 text-xs font-bold sm:px-4 sm:py-3 sm:text-sm"
+                      className="inline-flex items-center justify-center rounded-full border border-[rgba(70,50,30,0.12)] bg-white px-3 py-2.5 text-xs font-semibold text-[#1f1b16]"
                     >
-                      Dashboard
+                      Home
                     </Link>
                     <Link
                       href="/pet"
-                      className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#e4d3be] bg-white px-3 py-2.5 text-xs font-bold sm:gap-2 sm:px-4 sm:py-3 sm:text-sm"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-full border border-[rgba(70,50,30,0.12)] bg-white px-3 py-2.5 text-xs font-semibold text-[#1f1b16]"
                     >
-                      <MessageCircle size={16} />
+                      <MessageCircle size={14} />
                       Pet
                     </Link>
                     <Link
-                      href="/pet-warehouse"
-                      className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#e4d3be] bg-white px-3 py-2.5 text-xs font-bold sm:gap-2 sm:px-4 sm:py-3 sm:text-sm"
+                      href="/dex"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-full border border-[rgba(70,50,30,0.12)] bg-white px-3 py-2.5 text-xs font-semibold text-[#1f1b16]"
                     >
-                      <PackageOpen size={16} />
-                      Box
+                      <LibraryBig size={14} />
+                      Dex
                     </Link>
                   </div>
                 ) : null}
               </div>
             ) : (
-              <div className="mt-3 flex min-h-[200px] items-center justify-center rounded-lg bg-[#f8efe3] p-5 text-center text-sm text-[#766b60] sm:mt-4 sm:min-h-[360px] sm:p-6">
-                Upload a food photo and run mock or AI analysis.
+              <div className="flex w-full max-w-[360px] flex-col items-center justify-center rounded-[32px] border border-[rgba(70,50,30,0.08)] bg-[rgba(255,253,248,0.96)] p-10 text-center shadow-[0_24px_70px_rgba(70,50,30,0.06)]">
+                <Camera size={32} className="text-[#9b856d]" />
+                <p className="mt-4 text-sm leading-6 text-[#9b856d]">
+                  Upload a food photo and run AI analysis to generate your card.
+                </p>
               </div>
             )}
           </div>
@@ -542,14 +554,8 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
-function Macro({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-lg bg-[#f8efe3] p-2.5 sm:p-4">
-      <p className="text-[11px] font-medium text-[#766b60] sm:text-sm">{label}</p>
-      <p className="mt-0.5 text-lg font-bold sm:mt-1 sm:text-2xl">
-        {value}
-        <span className="ml-0.5 text-xs font-semibold sm:ml-1 sm:text-sm">g</span>
-      </p>
-    </div>
-  );
+function stableDexNumber(foodName: string): string {
+  const value =
+    foodName.split("").reduce((sum, c) => sum + c.charCodeAt(0), 0) % 900 + 100;
+  return String(value).padStart(3, "0");
 }
