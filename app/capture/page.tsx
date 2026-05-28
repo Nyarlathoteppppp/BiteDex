@@ -126,14 +126,23 @@ export default function CapturePage() {
     setStatus("Fallback card ready.");
   }
 
-  async function saveResult() {
+  function saveResult() {
     if (!result) {
       return;
     }
 
-    addFoodCard(result);
-    setSaved(true);
-    setStatus("Added to today's timeline.");
+    try {
+      addFoodCard(result);
+      setSaved(true);
+      setStatus("Added to Food Dex.");
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Unknown error";
+      if (msg.includes("quota") || msg.includes("QuotaExceeded") || msg.includes("storage")) {
+        setStatus("Storage full. Try clearing old data or use a smaller photo.");
+      } else {
+        setStatus(`Save failed: ${msg}`);
+      }
+    }
   }
 
   function toFoodCard(food: RecognizedFood): FoodCard {
@@ -468,7 +477,7 @@ async function prepareImageForUpload(file: File): Promise<{
 
   try {
     const image = await loadImage(originalDataUrl);
-    const maxSide = 1400;
+    const maxSide = 800;
     const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
     const width = Math.max(1, Math.round(image.width * scale));
     const height = Math.max(1, Math.round(image.height * scale));
@@ -485,7 +494,7 @@ async function prepareImageForUpload(file: File): Promise<{
 
     context.drawImage(image, 0, 0, width, height);
 
-    const blob = await canvasToBlob(canvas, "image/jpeg", 0.86);
+    const blob = await canvasToBlob(canvas, "image/jpeg", 0.7);
     const normalizedFile = new File([blob], replaceImageExtension(file.name), {
       type: "image/jpeg",
       lastModified: Date.now(),
